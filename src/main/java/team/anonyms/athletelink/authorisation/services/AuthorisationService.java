@@ -6,11 +6,14 @@ import team.anonyms.athletelink.authorisation.dto.service.authorisation.LoginRes
 import team.anonyms.athletelink.authorisation.entities.JwtRefreshToken;
 import team.anonyms.athletelink.authorisation.entities.User;
 import team.anonyms.athletelink.authorisation.repositories.UserRepository;
+import team.anonyms.athletelink.authorisation.dto.service.authorisation.RegisterRequestServiceDto;
 
 import org.jspecify.annotations.NonNull;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -56,6 +59,34 @@ public class AuthorisationService {
         }
 
         return deviceDataList;
+    }
+
+    /**
+     * Registers new user in the system.
+     *
+     * @param dto credentials to register
+     * @return user's UUID
+     * @throws IllegalArgumentException if specified email already exists in DB
+     */
+    @Transactional
+    public UUID register(@NonNull RegisterRequestServiceDto dto) {
+        if (userRepository.findByEmail(dto.email()).isPresent()) {
+            // TODO: add custom Exception
+            throw new IllegalArgumentException("User with this email already exists.");
+        }
+
+        String encodedPassword = passwordEncoder.encode(dto.password());
+
+        User newUser = User.builder()
+                .username(dto.username())
+                .email(dto.email())
+                .password(encodedPassword)
+                // TODO: verify email (not implemented in AthleteLink)
+                .isVerified(false) 
+                .build();
+
+        User savedUser = userRepository.save(newUser);
+        return savedUser.getId();
     }
 
     /**

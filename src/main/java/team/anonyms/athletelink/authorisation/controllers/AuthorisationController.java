@@ -5,10 +5,16 @@ import team.anonyms.athletelink.authorisation.dto.controller.authorisation.Crede
 import team.anonyms.athletelink.authorisation.dto.controller.authorisation.LoginResultControllerDto;
 import team.anonyms.athletelink.authorisation.mappers.AuthorisationMapper;
 import team.anonyms.athletelink.authorisation.services.AuthorisationService;
+import team.anonyms.athletelink.authorisation.dto.controller.authorisation.RegisterRequestControllerDto;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/auth")
@@ -48,6 +54,25 @@ public class AuthorisationController {
                         )
                 )
         );
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<UUID> register(
+            @RequestBody @Valid RegisterRequestControllerDto dto 
+    ) {
+        logger.info("Called register; email={}", dto.email());
+
+        try {
+            var serviceDto = authorisationMapper.registerControllerToServiceDto(dto);
+            
+            UUID newUserId = authorisationService.register(serviceDto);
+            
+            return ResponseEntity.status(HttpStatus.CREATED).body(newUserId);
+            
+        } catch (IllegalArgumentException e) {
+            logger.warn("Registration failed: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
     }
 
     @PostMapping("/me")
