@@ -13,6 +13,9 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
+import org.springframework.http.HttpStatus;
 
 import java.util.UUID;
 
@@ -32,7 +35,7 @@ public class AuthorisationController {
         this.authorisationMapper = authorisationMapper;
     }
 
-    @PostMapping
+    @PostMapping("/login")
     public ResponseEntity<LoginResultControllerDto> login(
             @RequestBody CredentialsControllerDto credentialsControllerDto,
             HttpServletRequest request
@@ -43,17 +46,29 @@ public class AuthorisationController {
             return ResponseEntity.badRequest().build();
         }
 
-        return ResponseEntity.ok(
-                authorisationMapper.loginResultServiceToControllerDto(
-                        authorisationService.login(
-                                authorisationMapper.credentialsControllerToServiceDto(
-                                        credentialsControllerDto,
-                                        request.getHeader("User-Agent"),
-                                        request.getRemoteAddr()
-                                )
-                        )
-                )
+        var serviceDto = authorisationMapper.credentialsControllerToServiceDto(
+                credentialsControllerDto,
+                request.getHeader("User-Agent"),
+                request.getRemoteAddr()
         );
+
+        var loginResult = authorisationService.login(serviceDto);
+
+        if (!loginResult.success()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", loginResult.refreshToken())
+                .httpOnly(true)
+                .secure(false) // TODO: true in prod (when we will implement HTTPS)
+                .path("/")
+                .maxAge(30 * 24 * 60 * 60)
+                .sameSite("Lax")
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                .body(authorisationMapper.loginResultServiceToControllerDto(loginResult));
     }
 
     @PostMapping("/register")
