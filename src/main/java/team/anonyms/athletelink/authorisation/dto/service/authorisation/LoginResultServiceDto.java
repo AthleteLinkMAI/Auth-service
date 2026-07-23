@@ -5,6 +5,7 @@ import java.util.UUID;
 public record LoginResultServiceDto(
         Boolean success,
         Boolean isVerified,
-        UUID userId
-) {
-}
+        UUID userId,
+        String accessToken,
+        String refreshToken
+) {}

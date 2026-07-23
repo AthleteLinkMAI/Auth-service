@@ -99,26 +99,27 @@ public class AuthorisationService {
      */
     public LoginResultServiceDto login(@NonNull CredentialsServiceDto credentialsServiceDto) {
         Optional<User> userOptional = userRepository.findByEmail(credentialsServiceDto.email());
-        if (userOptional.isEmpty()) {
-            return UNSUCCESSFUL_LOGIN_RESULT_SERVICE_DTO;
+
+        if (userOptional.isEmpty() || !passwordEncoder.matches(credentialsServiceDto.password(), userOptional.get().getPassword())) {
+            return new LoginResultServiceDto(false, null, null, null, null);
         }
 
         User user = userOptional.get();
 
-        if (!passwordEncoder.matches(credentialsServiceDto.password(), user.getPassword())) {
-            return UNSUCCESSFUL_LOGIN_RESULT_SERVICE_DTO;
-        }
+        String accessToken = jwtService.generateAccessToken(user);
 
-        jwtService.addRefreshToken(
+        String refreshToken = jwtService.createOrUpdateRefreshToken(
                 user,
                 credentialsServiceDto.userAgent(),
                 credentialsServiceDto.userIpAddress()
         );
 
         return new LoginResultServiceDto(
-                Boolean.TRUE,
+                true,
                 user.getIsVerified(),
-                user.getId()
+                user.getId(),
+                accessToken,
+                refreshToken
         );
     }
 

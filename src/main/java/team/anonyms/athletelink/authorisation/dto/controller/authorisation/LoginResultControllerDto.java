@@ -5,6 +5,6 @@ import java.util.UUID;
 public record LoginResultControllerDto(
         Boolean success,
         Boolean isVerified,
-        UUID userId
-) {
-}
+        UUID userId,
+        String accessToken
+) {}

@@ -27,7 +27,8 @@ public class AuthorisationMapper {
         return new LoginResultControllerDto(
                 loginResultServiceDto.success(),
                 loginResultServiceDto.isVerified(),
-                loginResultServiceDto.userId()
+                loginResultServiceDto.userId(),
+                loginResultServiceDto.accessToken()
         );
     }
 

@@ -9,9 +9,11 @@ import jakarta.annotation.PostConstruct;
 import team.anonyms.athletelink.authorisation.entities.JwtRefreshToken;
 import team.anonyms.athletelink.authorisation.entities.User;
 import team.anonyms.athletelink.authorisation.repositories.JwtRefreshTokenRepository;
+
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.crypto.SecretKey;
 import java.time.Duration;
@@ -53,30 +55,34 @@ public class JwtService {
      *     this method add new one to database.
      * </p>
      */
-    public void addRefreshToken(User user, String userAgent, String ipAddress) {
+    @Transactional
+    public String createOrUpdateRefreshToken(User user, String userAgent, String ipAddress) {
         List<JwtRefreshToken> existedJwtRefreshTokens = jwtRefreshTokenRepository.findAllByUserId(user.getId());
 
-        for (JwtRefreshToken existedJwtRefreshToken : existedJwtRefreshTokens) {
-            if (existedJwtRefreshToken.getUserAgent().equals(userAgent)) {
-                existedJwtRefreshToken.setExpiration(Instant.now().plus(REFRESH_TOKEN_DURATION));
-                jwtRefreshTokenRepository.save(existedJwtRefreshToken);
-                return;
+        for (JwtRefreshToken tokenEntity : existedJwtRefreshTokens) {
+            if (tokenEntity.getUserAgent().equals(userAgent)) {
+                tokenEntity.setExpiration(Instant.now().plus(REFRESH_TOKEN_DURATION));
+                tokenEntity.setLastUsed(Instant.now());
+                jwtRefreshTokenRepository.save(tokenEntity);
+                return tokenEntity.getToken();
             }
         }
 
         Instant now = Instant.now();
         Instant expiration = now.plus(REFRESH_TOKEN_DURATION);
+        String rawToken = generate(user.getId(), expiration);
 
-        jwtRefreshTokenRepository.save(
-                JwtRefreshToken.builder()
-                        .token(generate(user.getId(), expiration))
-                        .expiration(expiration)
-                        .lastUsed(now)
-                        .userAgent(userAgent)
-                        .ipAddress(ipAddress)
-                        .user(user)
-                        .build()
-        );
+        JwtRefreshToken newTokenEntity = JwtRefreshToken.builder()
+                .token(rawToken)
+                .expiration(expiration)
+                .lastUsed(now)
+                .userAgent(userAgent)
+                .ipAddress(ipAddress)
+                .user(user)
+                .build();
+
+        jwtRefreshTokenRepository.save(newTokenEntity);
+        return rawToken;
     }
 
     public String generateAccessToken(User user) {
