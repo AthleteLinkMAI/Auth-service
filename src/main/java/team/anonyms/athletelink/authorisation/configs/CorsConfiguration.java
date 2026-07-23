@@ -18,7 +18,7 @@ public class CorsConfiguration {
         // TODO: move frontend links to application.yaml
         configuration.setAllowedOrigins(List.of("http://localhost:8080")); 
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "User-Agent"));
+        configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
