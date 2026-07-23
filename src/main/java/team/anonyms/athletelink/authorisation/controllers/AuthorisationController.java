@@ -6,6 +6,7 @@ import team.anonyms.athletelink.authorisation.dto.controller.authorisation.Login
 import team.anonyms.athletelink.authorisation.mappers.AuthorisationMapper;
 import team.anonyms.athletelink.authorisation.services.AuthorisationService;
 import team.anonyms.athletelink.authorisation.dto.controller.authorisation.RegisterRequestControllerDto;
+import team.anonyms.athletelink.authorisation.dto.controller.authorisation.TokenRefreshResponseDto;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +16,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
-import org.springframework.http.HttpStatus;
 
 import java.util.UUID;
 
@@ -90,8 +90,25 @@ public class AuthorisationController {
         }
     }
 
-    @PostMapping("/me")
-    public ResponseEntity<Void> updateAccessToken(@CookieValue String refreshToken) {
-        return ResponseEntity.ok().build();
+    @PostMapping("/refresh")
+    public ResponseEntity<TokenRefreshResponseDto> refresh(
+            @CookieValue(name = "refreshToken", required = false) String refreshToken
+    ) {
+        logger.info("Called refresh token endpoint");
+
+        if (refreshToken == null) {
+            logger.warn("Refresh token cookie is missing");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        try {
+            String newAccessToken = authorisationService.updateAccessToken(refreshToken);
+            
+            return ResponseEntity.ok(new TokenRefreshResponseDto(newAccessToken));
+            
+        } catch (IllegalArgumentException e) {
+            logger.warn("Refresh failed: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
     }
 }

@@ -125,7 +125,7 @@ public class AuthorisationService {
         );
     }
 
-    public Void updateAccessToken(String accessToken) {
-        return null;
+    public String updateAccessToken(String refreshToken) {
+        return jwtService.refreshAccessToken(refreshToken);
     }
 }

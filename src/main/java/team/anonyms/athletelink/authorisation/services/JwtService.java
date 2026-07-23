@@ -135,4 +135,31 @@ public class JwtService {
                 .signWith(key)
                 .compact();
     }
+
+    /**
+     * Checks Refresh-token and generates new Access-token.
+     *
+     * @param refreshToken token from cookie
+     * @return new Access-token
+     * @throws IllegalArgumentException if token is invalid, outdated or not found
+     */
+    @Transactional
+    public String refreshAccessToken(String refreshToken) {
+        if (!isValid(refreshToken)) {
+            throw new IllegalArgumentException("Invalid JWT signature");
+        }
+
+        JwtRefreshToken dbToken = jwtRefreshTokenRepository.findByToken(refreshToken)
+                .orElseThrow(() -> new IllegalArgumentException("Refresh token not found in database"));
+
+        if (dbToken.getExpiration().isBefore(Instant.now())) {
+            jwtRefreshTokenRepository.delete(dbToken);
+            throw new IllegalArgumentException("Refresh token is expired");
+        }
+
+        dbToken.setLastUsed(Instant.now());
+        jwtRefreshTokenRepository.save(dbToken);
+
+        return generateAccessToken(dbToken.getUser());
+    }
 }
