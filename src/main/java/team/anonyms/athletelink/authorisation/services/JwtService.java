@@ -1,6 +1,5 @@
 package team.anonyms.athletelink.authorisation.services;
 
-import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -135,9 +134,5 @@ public class JwtService {
                 .expiration(Date.from(expiration))
                 .signWith(key)
                 .compact();
-    }
-
-    private Claims getClaims(String token) {
-        return Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
     }
 }

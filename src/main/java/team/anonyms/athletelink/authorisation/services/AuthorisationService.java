@@ -37,6 +37,8 @@ public class AuthorisationService {
     private static final LoginResultServiceDto UNSUCCESSFUL_LOGIN_RESULT_SERVICE_DTO = new LoginResultServiceDto(
             Boolean.FALSE,
             null,
+            null,
+            null,
             null
     );
 
