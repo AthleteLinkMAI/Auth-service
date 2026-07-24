@@ -125,6 +125,17 @@ public class AuthorisationService {
         );
     }
 
+    /**
+     * Logging out of system.
+     * 
+     * @param refreshToken token that must be invalidated
+     */
+    public void logout(String refreshToken) {
+        if (refreshToken != null && !refreshToken.isBlank()) {
+            jwtService.deleteRefreshToken(refreshToken);
+        }
+    }
+
     public String updateAccessToken(String refreshToken) {
         return jwtService.refreshAccessToken(refreshToken);
     }

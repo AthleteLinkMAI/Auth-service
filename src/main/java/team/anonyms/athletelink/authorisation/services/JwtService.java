@@ -162,4 +162,10 @@ public class JwtService {
 
         return generateAccessToken(dbToken.getUser());
     }
+
+    @Transactional
+    public void deleteRefreshToken(String refreshToken) {
+        jwtRefreshTokenRepository.findByToken(refreshToken)
+                .ifPresent(tokenEntity -> jwtRefreshTokenRepository.delete(tokenEntity));
+    }
 }
