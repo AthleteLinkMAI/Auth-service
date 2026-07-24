@@ -34,14 +34,6 @@ public class AuthorisationService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    private static final LoginResultServiceDto UNSUCCESSFUL_LOGIN_RESULT_SERVICE_DTO = new LoginResultServiceDto(
-            Boolean.FALSE,
-            null,
-            null,
-            null,
-            null
-    );
-
     // Move to new API endpoint
     public static List<DeviceData> createDeviceDataListFromJwtRefreshTokenList(
             List<JwtRefreshToken> jwtRefreshTokenList
