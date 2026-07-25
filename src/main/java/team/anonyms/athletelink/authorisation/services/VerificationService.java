@@ -42,7 +42,7 @@ public class VerificationService {
         Instant expiration = Instant.now().plus(CODE_EXPIRATION_MINUTES, ChronoUnit.MINUTES);
 
         VerificationCode verificationCode = verificationCodeRepository.findByUserId(user.getId())
-                .orElse(new VerificationCode());
+                .orElse(VerificationCode.builder().build());
 
         verificationCode.setUser(user);
         verificationCode.setCode(code);
