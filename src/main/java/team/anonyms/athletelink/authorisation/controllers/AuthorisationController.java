@@ -9,6 +9,7 @@ import team.anonyms.athletelink.authorisation.dto.controller.authorisation.Regis
 import team.anonyms.athletelink.authorisation.dto.controller.authorisation.TokenRefreshResponseDto;
 import team.anonyms.athletelink.authorisation.dto.controller.authorisation.SendCodeRequestControllerDto;
 import team.anonyms.athletelink.authorisation.dto.controller.authorisation.VerifyCodeRequestControllerDto;
+import team.anonyms.athletelink.authorisation.dto.controller.authorisation.ResetPasswordRequestControllerDto;
 import team.anonyms.athletelink.authorisation.services.VerificationService;
 
 import org.slf4j.Logger;
@@ -168,5 +169,36 @@ public class AuthorisationController {
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, deleteCookie.toString())
                 .build();
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Void> forgotPassword(
+            @RequestBody @Valid SendCodeRequestControllerDto dto
+    ) {
+        logger.info("Request to send password reset code for email: {}", dto.email());
+        try {
+            verificationService.generateAndSendPasswordResetCode(dto.email());
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            logger.warn("Failed to send password reset code: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Void> resetPassword(
+            @RequestBody @Valid ResetPasswordRequestControllerDto dto
+    ) {
+        logger.info("Request to reset password for email: {}", dto.email());
+        try {
+            verificationService.validateAndConsumePasswordResetCode(dto.email(), dto.code());
+            
+            authorisationService.resetPassword(dto.email(), dto.newPassword());
+            
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            logger.warn("Password reset failed: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
+        }
     }
 }

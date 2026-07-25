@@ -75,7 +75,6 @@ public class AuthorisationService {
                 .username(dto.username())
                 .email(dto.email())
                 .password(encodedPassword)
-                // TODO: verify email (not implemented in AthleteLink)
                 .isVerified(false) 
                 .build();
 
@@ -126,6 +125,22 @@ public class AuthorisationService {
         if (refreshToken != null && !refreshToken.isBlank()) {
             jwtService.deleteRefreshToken(refreshToken);
         }
+    }
+
+    /**
+     * Sets user's new password.
+     * @param email user's email
+     * @param newRawPassword password (is set by force)
+     */
+    @Transactional
+    public void resetPassword(String email, String newRawPassword) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        String encodedPassword = passwordEncoder.encode(newRawPassword);
+        user.setPassword(encodedPassword);
+        
+        userRepository.save(user);
     }
 
     public String updateAccessToken(String refreshToken) {

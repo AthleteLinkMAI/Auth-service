@@ -79,4 +79,50 @@ public class VerificationService {
         userRepository.save(user);
         verificationCodeRepository.delete(verificationCode);
     }
+
+    @Transactional
+    public void generateAndSendPasswordResetCode(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        SecureRandom random = new SecureRandom();
+        String code = String.format("%06d", random.nextInt(1000000));
+        Instant expiration = Instant.now().plus(CODE_EXPIRATION_MINUTES, ChronoUnit.MINUTES);
+
+        VerificationCode verificationCode = verificationCodeRepository.findByUserId(user.getId())
+                .orElse(VerificationCode.builder().build());
+
+        verificationCode.setUser(user);
+        verificationCode.setCode(code);
+        verificationCode.setType(VerificationCodeType.PASSWORD); 
+        verificationCode.setExpiration(expiration);
+
+        verificationCodeRepository.save(verificationCode);
+
+        logger.info(" PASSWORD RESET CODE FOR {}: {}", email, code);
+    }
+
+    @Transactional
+    public void validateAndConsumePasswordResetCode(String email, String code) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        VerificationCode verificationCode = verificationCodeRepository.findByUserId(user.getId())
+                .orElseThrow(() -> new IllegalArgumentException("No verification code found for user"));
+
+        if (verificationCode.getType() != VerificationCodeType.PASSWORD) {
+            throw new IllegalArgumentException("Invalid code type. Expected password reset code.");
+        }
+
+        if (verificationCode.getExpiration().isBefore(Instant.now())) {
+            verificationCodeRepository.delete(verificationCode);
+            throw new IllegalArgumentException("Verification code has expired");
+        }
+
+        if (!verificationCode.getCode().equals(code)) {
+            throw new IllegalArgumentException("Invalid verification code");
+        }
+
+        verificationCodeRepository.delete(verificationCode);
+    }
 }
