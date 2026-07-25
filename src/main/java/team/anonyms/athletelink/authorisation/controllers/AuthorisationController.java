@@ -7,6 +7,9 @@ import team.anonyms.athletelink.authorisation.mappers.AuthorisationMapper;
 import team.anonyms.athletelink.authorisation.services.AuthorisationService;
 import team.anonyms.athletelink.authorisation.dto.controller.authorisation.RegisterRequestControllerDto;
 import team.anonyms.athletelink.authorisation.dto.controller.authorisation.TokenRefreshResponseDto;
+import team.anonyms.athletelink.authorisation.dto.controller.authorisation.SendCodeRequestControllerDto;
+import team.anonyms.athletelink.authorisation.dto.controller.authorisation.VerifyCodeRequestControllerDto;
+import team.anonyms.athletelink.authorisation.services.VerificationService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,14 +30,17 @@ public class AuthorisationController {
     private final AuthorisationService authorisationService;
     private final AuthorisationMapper authorisationMapper;
 
+    private final VerificationService verificationService;
+
     public AuthorisationController(
             AuthorisationService authorisationService,
-            AuthorisationMapper authorisationMapper
+            AuthorisationMapper authorisationMapper,
+            VerificationService verificationService
     ) {
         this.authorisationService = authorisationService;
         this.authorisationMapper = authorisationMapper;
+        this.verificationService = verificationService;
     }
-
     @PostMapping("/login")
     public ResponseEntity<LoginResultControllerDto> login(
             @RequestBody CredentialsControllerDto credentialsControllerDto,
@@ -109,6 +115,35 @@ public class AuthorisationController {
         } catch (IllegalArgumentException e) {
             logger.warn("Refresh failed: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+    }
+
+    @PostMapping("/send-code")
+    public ResponseEntity<Void> sendVerificationCode(
+            @RequestBody @Valid SendCodeRequestControllerDto dto
+    ) {
+        logger.info("Request to send verification code for email: {}", dto.email());
+        try {
+            verificationService.generateAndSendEmailCode(dto.email());
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            logger.warn("Failed to send code: {}", e.getMessage());
+            // Возвращаем 400, если юзер не найден или уже верифицирован
+            return ResponseEntity.badRequest().build(); 
+        }
+    }
+
+    @PostMapping("/verify")
+    public ResponseEntity<Void> verifyEmail(
+            @RequestBody @Valid VerifyCodeRequestControllerDto dto
+    ) {
+        logger.info("Request to verify email: {}", dto.email());
+        try {
+            verificationService.verifyEmail(dto.email(), dto.code());
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            logger.warn("Email verification failed: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
         }
     }
 
