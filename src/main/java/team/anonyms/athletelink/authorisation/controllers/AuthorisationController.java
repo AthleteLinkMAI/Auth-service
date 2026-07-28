@@ -11,6 +11,7 @@ import team.anonyms.athletelink.authorisation.dto.controller.authorisation.SendC
 import team.anonyms.athletelink.authorisation.dto.controller.authorisation.VerifyCodeRequestControllerDto;
 import team.anonyms.athletelink.authorisation.dto.controller.authorisation.ResetPasswordRequestControllerDto;
 import team.anonyms.athletelink.authorisation.services.VerificationService;
+import team.anonyms.athletelink.authorisation.dto.controller.authorisation.ChangePasswordRequestControllerDto;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +23,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 
 import java.util.UUID;
+import java.security.Principal;
 
 @RestController
 @RequestMapping("/auth")
@@ -84,17 +86,9 @@ public class AuthorisationController {
     ) {
         logger.info("Called register; email={}", dto.email());
 
-        try {
-            var serviceDto = authorisationMapper.registerControllerToServiceDto(dto);
-            
-            UUID newUserId = authorisationService.register(serviceDto);
-            
-            return ResponseEntity.status(HttpStatus.CREATED).body(newUserId);
-            
-        } catch (IllegalArgumentException e) {
-            logger.warn("Registration failed: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
-        }
+        var serviceDto = authorisationMapper.registerControllerToServiceDto(dto);
+        UUID newUserId = authorisationService.register(serviceDto); 
+        return ResponseEntity.status(HttpStatus.CREATED).body(newUserId);
     }
 
     @PostMapping("/refresh")
@@ -124,14 +118,9 @@ public class AuthorisationController {
             @RequestBody @Valid SendCodeRequestControllerDto dto
     ) {
         logger.info("Request to send verification code for email: {}", dto.email());
-        try {
-            verificationService.generateAndSendEmailCode(dto.email());
-            return ResponseEntity.ok().build();
-        } catch (IllegalArgumentException e) {
-            logger.warn("Failed to send code: {}", e.getMessage());
-            // Возвращаем 400, если юзер не найден или уже верифицирован
-            return ResponseEntity.badRequest().build(); 
-        }
+        
+        verificationService.generateAndSendEmailCode(dto.email());
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/verify")
@@ -139,13 +128,8 @@ public class AuthorisationController {
             @RequestBody @Valid VerifyCodeRequestControllerDto dto
     ) {
         logger.info("Request to verify email: {}", dto.email());
-        try {
-            verificationService.verifyEmail(dto.email(), dto.code());
-            return ResponseEntity.ok().build();
-        } catch (IllegalArgumentException e) {
-            logger.warn("Email verification failed: {}", e.getMessage());
-            return ResponseEntity.badRequest().build();
-        }
+        verificationService.verifyEmail(dto.email(), dto.code());
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/logout")
@@ -176,13 +160,8 @@ public class AuthorisationController {
             @RequestBody @Valid SendCodeRequestControllerDto dto
     ) {
         logger.info("Request to send password reset code for email: {}", dto.email());
-        try {
-            verificationService.generateAndSendPasswordResetCode(dto.email());
-            return ResponseEntity.ok().build();
-        } catch (IllegalArgumentException e) {
-            logger.warn("Failed to send password reset code: {}", e.getMessage());
-            return ResponseEntity.badRequest().build();
-        }
+        verificationService.generateAndSendPasswordResetCode(dto.email());
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/reset-password")
@@ -190,15 +169,19 @@ public class AuthorisationController {
             @RequestBody @Valid ResetPasswordRequestControllerDto dto
     ) {
         logger.info("Request to reset password for email: {}", dto.email());
-        try {
-            verificationService.validateAndConsumePasswordResetCode(dto.email(), dto.code());
-            
-            authorisationService.resetPassword(dto.email(), dto.newPassword());
-            
-            return ResponseEntity.ok().build();
-        } catch (IllegalArgumentException e) {
-            logger.warn("Password reset failed: {}", e.getMessage());
-            return ResponseEntity.badRequest().build();
-        }
+
+        verificationService.validateAndConsumePasswordResetCode(dto.email(), dto.code());
+        authorisationService.resetPassword(dto.email(), dto.newPassword());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<Void> changePassword(
+            @RequestBody @Valid ChangePasswordRequestControllerDto dto,
+            Principal principal
+    ) {
+        logger.info("Request to change password for user ID: {}", principal.getName());
+        authorisationService.changePassword(principal.getName(), dto.oldPassword(), dto.newPassword());
+        return ResponseEntity.ok().build();
     }
 }

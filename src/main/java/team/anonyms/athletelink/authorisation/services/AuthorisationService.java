@@ -143,6 +143,23 @@ public class AuthorisationService {
         userRepository.save(user);
     }
 
+    /**
+     * Change password for authorized user.
+     */
+    @Transactional
+    public void changePassword(String userIdStr, String oldRawPassword, String newRawPassword) {
+        UUID userId = UUID.fromString(userIdStr);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found."));
+
+        if (!passwordEncoder.matches(oldRawPassword, user.getPassword())) {
+            throw new IllegalArgumentException("Incorrect old password.");
+        }
+
+        user.setPassword(passwordEncoder.encode(newRawPassword));
+        userRepository.save(user);
+    }
+
     public String updateAccessToken(String refreshToken) {
         return jwtService.refreshAccessToken(refreshToken);
     }
