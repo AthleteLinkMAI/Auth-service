@@ -23,20 +23,22 @@ public class AuthorisationMapper {
         );
     }
 
+    public RegisterRequestServiceDto registerControllerToServiceDto(
+            RegisterRequestControllerDto registerRequestControllerDto
+    ) {
+        return new RegisterRequestServiceDto(
+                registerRequestControllerDto.username(),
+                registerRequestControllerDto.email(),
+                registerRequestControllerDto.password()
+        );
+    }
+
     public LoginResultControllerDto loginResultServiceToControllerDto(LoginResultServiceDto loginResultServiceDto) {
         return new LoginResultControllerDto(
                 loginResultServiceDto.success(),
                 loginResultServiceDto.isVerified(),
                 loginResultServiceDto.userId(),
                 loginResultServiceDto.accessToken()
-        );
-    }
-
-    public RegisterRequestServiceDto registerControllerToServiceDto(RegisterRequestControllerDto registerRequestServiceDto) {
-        return new RegisterRequestServiceDto(
-                registerRequestServiceDto.username(),
-                registerRequestServiceDto.email(),
-                registerRequestServiceDto.password()
         );
     }
 }

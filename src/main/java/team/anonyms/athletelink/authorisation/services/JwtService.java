@@ -5,6 +5,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
+import jakarta.persistence.EntityNotFoundException;
 import team.anonyms.athletelink.authorisation.entities.JwtRefreshToken;
 import team.anonyms.athletelink.authorisation.entities.User;
 import team.anonyms.athletelink.authorisation.repositories.JwtRefreshTokenRepository;
@@ -120,23 +121,6 @@ public class JwtService {
     }
 
     /**
-     * Generates a new JWT token based on user ID.
-     *
-     * @param userId user ID.
-     * @param expiration expiration of the new JWT token.
-     *
-     * @return JWT token.
-     */
-    private String generate(UUID userId, Instant expiration) {
-        return Jwts.builder()
-                .subject(userId.toString())
-                .issuedAt(Date.from(Instant.now()))
-                .expiration(Date.from(expiration))
-                .signWith(key)
-                .compact();
-    }
-
-    /**
      * Checks Refresh-token and generates new Access-token.
      *
      * @param refreshToken token from cookie
@@ -150,7 +134,7 @@ public class JwtService {
         }
 
         JwtRefreshToken dbToken = jwtRefreshTokenRepository.findByToken(refreshToken)
-                .orElseThrow(() -> new IllegalArgumentException("Refresh token not found in database"));
+                .orElseThrow(() -> new EntityNotFoundException("Refresh token not found"));
 
         if (dbToken.getExpiration().isBefore(Instant.now())) {
             jwtRefreshTokenRepository.delete(dbToken);
@@ -167,5 +151,22 @@ public class JwtService {
     public void deleteRefreshToken(String refreshToken) {
         jwtRefreshTokenRepository.findByToken(refreshToken)
                 .ifPresent(tokenEntity -> jwtRefreshTokenRepository.delete(tokenEntity));
+    }
+
+    /**
+     * Generates a new JWT token based on user ID.
+     *
+     * @param userId user ID.
+     * @param expiration expiration of the new JWT token.
+     *
+     * @return JWT token.
+     */
+    private String generate(UUID userId, Instant expiration) {
+        return Jwts.builder()
+                .subject(userId.toString())
+                .issuedAt(Date.from(Instant.now()))
+                .expiration(Date.from(expiration))
+                .signWith(key)
+                .compact();
     }
 }

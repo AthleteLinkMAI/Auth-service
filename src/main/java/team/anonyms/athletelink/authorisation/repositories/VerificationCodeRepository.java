@@ -6,6 +6,5 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface VerificationCodeRepository extends JpaRepository<VerificationCode, Long> {
-
     Optional<VerificationCode> findByUserId(UUID userId);
 }

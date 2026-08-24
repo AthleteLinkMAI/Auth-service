@@ -71,24 +71,22 @@ public class AuthorisationService {
 
         String encodedPassword = passwordEncoder.encode(dto.password());
 
-        User newUser = User.builder()
+        User userToRegister = User.builder()
                 .username(dto.username())
                 .email(dto.email())
                 .password(encodedPassword)
                 .isVerified(false) 
                 .build();
 
-        User savedUser = userRepository.save(newUser);
-        return savedUser.getId();
+        User userRegistered = userRepository.save(userToRegister);
+        return userRegistered.getId();
     }
 
     /**
      * Login a user into system.
      *
-     * @param credentialsServiceDto a user's credentials
-     * @return {@link LoginResultServiceDto} if login is successful or null if login is unsuccessful.
-     *
-     * @throws IllegalArgumentException if password is incorrect for encoding.
+     * @param credentialsServiceDto a user's credentials.
+     * @return {@link LoginResultServiceDto}.
      */
     public LoginResultServiceDto login(@NonNull CredentialsServiceDto credentialsServiceDto) {
         Optional<User> userOptional = userRepository.findByEmail(credentialsServiceDto.email());
@@ -98,9 +96,7 @@ public class AuthorisationService {
         }
 
         User user = userOptional.get();
-
         String accessToken = jwtService.generateAccessToken(user);
-
         String refreshToken = jwtService.createOrUpdateRefreshToken(
                 user,
                 credentialsServiceDto.userAgent(),
@@ -144,7 +140,7 @@ public class AuthorisationService {
     }
 
     /**
-     * Change password for authorized user.
+     * Change password for authorised user.
      */
     @Transactional
     public void changePassword(String userIdStr, String oldRawPassword, String newRawPassword) {
@@ -158,9 +154,5 @@ public class AuthorisationService {
 
         user.setPassword(passwordEncoder.encode(newRawPassword));
         userRepository.save(user);
-    }
-
-    public String updateAccessToken(String refreshToken) {
-        return jwtService.refreshAccessToken(refreshToken);
     }
 }
