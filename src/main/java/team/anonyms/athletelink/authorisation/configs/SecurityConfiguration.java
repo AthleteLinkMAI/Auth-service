@@ -1,6 +1,6 @@
 package team.anonyms.athletelink.authorisation.configs;
 
-import team.anonyms.athletelink.authorisation.filters.JwtAuthenticationFilter;
+import team.anonyms.athletelink.authorisation.security.filters.JwtAuthenticationFilter;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,7 +15,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 public class SecurityConfiguration {
-
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     public SecurityConfiguration(JwtAuthenticationFilter jwtAuthenticationFilter) {
@@ -23,7 +22,7 @@ public class SecurityConfiguration {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) {
         http
             .csrf(AbstractHttpConfigurer::disable)
             .cors(Customizer.withDefaults())
