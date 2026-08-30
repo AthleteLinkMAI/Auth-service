@@ -14,16 +14,19 @@ import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
+/**
+ * {@code EmailService} is dedicated to handle sending emails.
+ */
+// TODO: Sending an email hasn't been realised yet.
 @Service
-public class VerificationService {
-
-    private static final Logger logger = LoggerFactory.getLogger(VerificationService.class);
+public class EmailService {
+    private static final Logger logger = LoggerFactory.getLogger(EmailService.class);
     private static final int CODE_EXPIRATION_MINUTES = 15; 
 
     private final UserRepository userRepository;
     private final VerificationCodeRepository verificationCodeRepository;
 
-    public VerificationService(UserRepository userRepository, VerificationCodeRepository verificationCodeRepository) {
+    public EmailService(UserRepository userRepository, VerificationCodeRepository verificationCodeRepository) {
         this.userRepository = userRepository;
         this.verificationCodeRepository = verificationCodeRepository;
     }

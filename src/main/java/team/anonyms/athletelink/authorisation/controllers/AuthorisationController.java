@@ -10,7 +10,7 @@ import team.anonyms.athletelink.authorisation.services.AuthorisationService;
 import team.anonyms.athletelink.authorisation.dto.controller.authorisation.RegisterRequestControllerDto;
 import team.anonyms.athletelink.authorisation.dto.controller.authorisation.ResetPasswordRequestControllerDto;
 import team.anonyms.athletelink.authorisation.services.JwtService;
-import team.anonyms.athletelink.authorisation.services.VerificationService;
+import team.anonyms.athletelink.authorisation.services.EmailService;
 import team.anonyms.athletelink.authorisation.dto.controller.authorisation.ChangePasswordRequestControllerDto;
 
 import org.slf4j.Logger;
@@ -33,18 +33,18 @@ public class AuthorisationController {
 
     private final AuthorisationService authorisationService;
     private final JwtService jwtService;
-    private final VerificationService verificationService;
+    private final EmailService emailService;
     private final AuthorisationMapper authorisationMapper;
 
     public AuthorisationController(
             AuthorisationService authorisationService,
             JwtService jwtService,
-            VerificationService verificationService,
+            EmailService emailService,
             AuthorisationMapper authorisationMapper
     ) {
         this.authorisationService = authorisationService;
         this.jwtService = jwtService;
-        this.verificationService = verificationService;
+        this.emailService = emailService;
         this.authorisationMapper = authorisationMapper;
     }
 
@@ -113,7 +113,7 @@ public class AuthorisationController {
             Principal principal
     ) {
         logger.info("Request to change password for user ID: {}", principal.getName());
-        authorisationService.changePassword(principal.getName(), dto.oldPassword(), dto.newPassword());
+        authorisationService.changePassword(UUID.fromString(principal.getName()), dto.oldPassword(), dto.newPassword());
         return ResponseEntity.ok().build();
     }
 
@@ -123,7 +123,7 @@ public class AuthorisationController {
             Principal principal
     ) {
         logger.info("Request to change password for user ID: {}", principal.getName());
-        authorisationService.changePassword(principal.getName(), dto.oldPassword(), dto.newPassword());
+        authorisationService.changePassword(UUID.fromString(principal.getName()), dto.oldPassword(), dto.newPassword());
         return ResponseEntity.ok().build();
     }
 
@@ -131,7 +131,7 @@ public class AuthorisationController {
     public ResponseEntity<Void> sendVerificationCode(@RequestBody @Email String email) {
         logger.info("Called send-code; {}", email);
         
-        verificationService.generateAndSendEmailCode(email);
+        emailService.generateAndSendEmailCode(email);
         return ResponseEntity.noContent().build();
     }
 
@@ -171,7 +171,7 @@ public class AuthorisationController {
     public ResponseEntity<Void> forgotPassword(@RequestBody @Email String email) {
         logger.info("Called forgot-password; email={}", email);
 
-        verificationService.generateAndSendPasswordResetCode(email);
+        emailService.generateAndSendPasswordResetCode(email);
         return ResponseEntity.ok().build();
     }
 
@@ -181,7 +181,7 @@ public class AuthorisationController {
     ) {
         logger.info("Called reset-password; email={}", resetPasswordRequestControllerDto.email());
 
-        verificationService.validateAndConsumePasswordResetCode(
+        emailService.validateAndConsumePasswordResetCode(
                 resetPasswordRequestControllerDto.email(),
                 resetPasswordRequestControllerDto.code()
         );

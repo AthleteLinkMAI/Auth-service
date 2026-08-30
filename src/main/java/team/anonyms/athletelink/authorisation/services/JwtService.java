@@ -37,34 +37,32 @@ public class JwtService {
     private SecretKey key;
 
     @Value("${jwt.secret}")
-    private String secret;
+    private String secret; // Add JWT secret to application.yaml
+
+    public JwtService(JwtRefreshTokenRepository jwtRefreshTokenRepository) {
+        this.jwtRefreshTokenRepository = jwtRefreshTokenRepository;
+    }
 
     @PostConstruct
     private void init() {
         this.key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret));
     }
 
-    public JwtService(JwtRefreshTokenRepository jwtRefreshTokenRepository) {
-        this.jwtRefreshTokenRepository = jwtRefreshTokenRepository;
-    }
-
     /**
-     * <p>
-     *     Looks for existed JWT refresh tokens in database and checks if any of tokens matches to the current device.
-     *     If JWT refresh token has already been existed this method updated the expiry date, if it hasn't been existed
-     *     this method add new one to database.
-     * </p>
+     * Looks for existed JWT refresh tokens in database and checks if any of tokens matches to the current device.
+     * If JWT refresh token has already been existed this method updated the expiry date, if it hasn't been existed
+     * this method add new one to database.
      */
     @Transactional
     public String createOrUpdateRefreshToken(User user, String userAgent, String ipAddress) {
-        List<JwtRefreshToken> existedJwtRefreshTokens = jwtRefreshTokenRepository.findAllByUserId(user.getId());
+        List<JwtRefreshToken> jwtRefreshTokens = jwtRefreshTokenRepository.findAllByUserId(user.getId());
 
-        for (JwtRefreshToken tokenEntity : existedJwtRefreshTokens) {
-            if (tokenEntity.getUserAgent().equals(userAgent)) {
-                tokenEntity.setExpiration(Instant.now().plus(REFRESH_TOKEN_DURATION));
-                tokenEntity.setLastUsed(Instant.now());
-                jwtRefreshTokenRepository.save(tokenEntity);
-                return tokenEntity.getToken();
+        for (JwtRefreshToken jwtRefreshToken : jwtRefreshTokens) {
+            if (jwtRefreshToken.getUserAgent().equals(userAgent)) {
+                jwtRefreshToken.setExpiration(Instant.now().plus(REFRESH_TOKEN_DURATION));
+                jwtRefreshToken.setLastUsed(Instant.now());
+                jwtRefreshTokenRepository.save(jwtRefreshToken);
+                return jwtRefreshToken.getToken();
             }
         }
 
@@ -72,7 +70,7 @@ public class JwtService {
         Instant expiration = now.plus(REFRESH_TOKEN_DURATION);
         String rawToken = generate(user.getId(), expiration);
 
-        JwtRefreshToken newTokenEntity = JwtRefreshToken.builder()
+        JwtRefreshToken jwtRefreshToken = JwtRefreshToken.builder()
                 .token(rawToken)
                 .expiration(expiration)
                 .lastUsed(now)
@@ -81,17 +79,12 @@ public class JwtService {
                 .user(user)
                 .build();
 
-        jwtRefreshTokenRepository.save(newTokenEntity);
+        jwtRefreshTokenRepository.save(jwtRefreshToken);
         return rawToken;
     }
 
-    public String generateAccessToken(User user) {
-        Instant expiration = Instant.now().plus(ACCESS_TOKEN_DURATION);
-        return generate(user.getId(), expiration);
-    }
-
     /**
-     * Extracts user ID from JWT token.
+     * Extracts user ID from a JWT token.
      *
      * @param token JWT token
      *
@@ -121,11 +114,14 @@ public class JwtService {
     }
 
     /**
-     * Checks Refresh-token and generates new Access-token.
+     * Checks provided JWT refresh token and generates a new JWT access token.
      *
-     * @param refreshToken token from cookie
-     * @return new Access-token
-     * @throws IllegalArgumentException if token is invalid, outdated or not found
+     * @param refreshToken token from cookie.
+     *
+     * @return new access token.
+     *
+     * @throws IllegalArgumentException if {@code refreshToken} is invalid or outdated.
+     * @throws EntityNotFoundException if {@code refreshToken} is not found.
      */
     @Transactional
     public String refreshAccessToken(String refreshToken) {
@@ -133,8 +129,9 @@ public class JwtService {
             throw new IllegalArgumentException("Invalid JWT signature");
         }
 
-        JwtRefreshToken dbToken = jwtRefreshTokenRepository.findByToken(refreshToken)
-                .orElseThrow(() -> new EntityNotFoundException("Refresh token not found"));
+        JwtRefreshToken dbToken = jwtRefreshTokenRepository.findByToken(refreshToken).orElseThrow(
+                () -> new EntityNotFoundException("Refresh token not found")
+        );
 
         if (dbToken.getExpiration().isBefore(Instant.now())) {
             jwtRefreshTokenRepository.delete(dbToken);
@@ -149,8 +146,7 @@ public class JwtService {
 
     @Transactional
     public void deleteRefreshToken(String refreshToken) {
-        jwtRefreshTokenRepository.findByToken(refreshToken)
-                .ifPresent(tokenEntity -> jwtRefreshTokenRepository.delete(tokenEntity));
+        jwtRefreshTokenRepository.findByToken(refreshToken).ifPresent(jwtRefreshTokenRepository::delete);
     }
 
     /**
@@ -168,5 +164,10 @@ public class JwtService {
                 .expiration(Date.from(expiration))
                 .signWith(key)
                 .compact();
+    }
+
+    private String generateAccessToken(User user) {
+        Instant expiration = Instant.now().plus(ACCESS_TOKEN_DURATION);
+        return generate(user.getId(), expiration);
     }
 }

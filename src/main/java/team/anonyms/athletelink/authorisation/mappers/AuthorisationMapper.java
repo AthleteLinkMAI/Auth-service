@@ -38,7 +38,7 @@ public class AuthorisationMapper {
                 loginResultServiceDto.success(),
                 loginResultServiceDto.isVerified(),
                 loginResultServiceDto.userId(),
-                loginResultServiceDto.accessToken()
+                loginResultServiceDto.refreshToken()
         );
     }
 }

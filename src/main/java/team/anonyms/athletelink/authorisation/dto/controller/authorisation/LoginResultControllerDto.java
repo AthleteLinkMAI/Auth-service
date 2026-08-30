@@ -6,5 +6,5 @@ public record LoginResultControllerDto(
         Boolean success,
         Boolean isVerified,
         UUID userId,
-        String accessToken
+        String refreshToken
 ) {}

@@ -6,6 +6,5 @@ public record LoginResultServiceDto(
         Boolean success,
         Boolean isVerified,
         UUID userId,
-        String accessToken,
         String refreshToken
 ) {}

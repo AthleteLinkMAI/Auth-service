@@ -1,5 +1,6 @@
 package team.anonyms.athletelink.authorisation.services;
 
+import jakarta.persistence.EntityNotFoundException;
 import team.anonyms.athletelink.authorisation.dto.DeviceData;
 import team.anonyms.athletelink.authorisation.dto.service.authorisation.CredentialsServiceDto;
 import team.anonyms.athletelink.authorisation.dto.service.authorisation.LoginResultServiceDto;
@@ -22,6 +23,7 @@ import java.util.Optional;
 public class AuthorisationService {
     private final JwtService jwtService;
     private final UserRepository userRepository;
+
     private final BCryptPasswordEncoder passwordEncoder;
 
     public AuthorisationService(
@@ -34,7 +36,7 @@ public class AuthorisationService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    // Move to new API endpoint
+    // Move to GET /sessions
     public static List<DeviceData> createDeviceDataListFromJwtRefreshTokenList(
             List<JwtRefreshToken> jwtRefreshTokenList
     ) {
@@ -56,33 +58,6 @@ public class AuthorisationService {
     }
 
     /**
-     * Registers new user in the system.
-     *
-     * @param dto credentials to register
-     * @return user's UUID
-     * @throws IllegalArgumentException if specified email already exists in DB
-     */
-    @Transactional
-    public UUID register(@NonNull RegisterRequestServiceDto dto) {
-        if (userRepository.findByEmail(dto.email()).isPresent()) {
-            // TODO: add custom Exception
-            throw new IllegalArgumentException("User with this email already exists.");
-        }
-
-        String encodedPassword = passwordEncoder.encode(dto.password());
-
-        User userToRegister = User.builder()
-                .username(dto.username())
-                .email(dto.email())
-                .password(encodedPassword)
-                .isVerified(false) 
-                .build();
-
-        User userRegistered = userRepository.save(userToRegister);
-        return userRegistered.getId();
-    }
-
-    /**
      * Login a user into system.
      *
      * @param credentialsServiceDto a user's credentials.
@@ -92,11 +67,10 @@ public class AuthorisationService {
         Optional<User> userOptional = userRepository.findByEmail(credentialsServiceDto.email());
 
         if (userOptional.isEmpty() || !passwordEncoder.matches(credentialsServiceDto.password(), userOptional.get().getPassword())) {
-            return new LoginResultServiceDto(false, null, null, null, null);
+            return new LoginResultServiceDto(false, null, null, null);
         }
 
         User user = userOptional.get();
-        String accessToken = jwtService.generateAccessToken(user);
         String refreshToken = jwtService.createOrUpdateRefreshToken(
                 user,
                 credentialsServiceDto.userAgent(),
@@ -107,31 +81,55 @@ public class AuthorisationService {
                 true,
                 user.getIsVerified(),
                 user.getId(),
-                accessToken,
                 refreshToken
         );
     }
 
     /**
+     * Registers new user in the system.
+     *
+     * @param registerDto credentials to register.
+     * @return user's UUID.
+     * @throws IllegalArgumentException if specified email already exists in DB.
+     */
+    @Transactional
+    public UUID register(@NonNull RegisterRequestServiceDto registerDto) {
+        if (userRepository.findByEmail(registerDto.email()).isPresent()) {
+            // TODO: add custom Exception
+            throw new IllegalArgumentException("User with this email already exists.");
+        }
+
+        User userToRegister = User.builder()
+                .username(registerDto.username())
+                .email(registerDto.email())
+                .password(passwordEncoder.encode(registerDto.password()))
+                .isVerified(false) 
+                .build();
+
+        User userRegistered = userRepository.save(userToRegister);
+        return userRegistered.getId();
+    }
+
+    /**
      * Logging out of system.
      * 
-     * @param refreshToken token that must be invalidated
+     * @param refreshToken token for deletion.
      */
     public void logout(String refreshToken) {
-        if (refreshToken != null && !refreshToken.isBlank()) {
-            jwtService.deleteRefreshToken(refreshToken);
-        }
+        jwtService.deleteRefreshToken(refreshToken);
     }
 
     /**
      * Sets user's new password.
-     * @param email user's email
-     * @param newRawPassword password (is set by force)
+     * @param email user's email.
+     * @param newRawPassword new password.
      */
+    // TODO: add verification by sending an email code
     @Transactional
     public void resetPassword(String email, String newRawPassword) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        User user = userRepository.findByEmail(email).orElseThrow(
+                () -> new IllegalArgumentException("User not found")
+        );
 
         String encodedPassword = passwordEncoder.encode(newRawPassword);
         user.setPassword(encodedPassword);
@@ -143,8 +141,7 @@ public class AuthorisationService {
      * Change password for authorised user.
      */
     @Transactional
-    public void changePassword(String userIdStr, String oldRawPassword, String newRawPassword) {
-        UUID userId = UUID.fromString(userIdStr);
+    public void changePassword(UUID userId, String oldRawPassword, String newRawPassword) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found."));
 
