@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 
-// TODO: add IDOR protection
 @RestController
 @RequestMapping("/auth")
 public class AuthenticationController {
@@ -73,7 +72,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<String> refresh(@CookieValue(name = "refreshToken", required = false) String refreshToken) {
+    public ResponseEntity<String> refresh(@CookieValue(name = "refreshToken") String refreshToken) {
         logger.info("Called refresh");
 
         return ResponseEntity.ok(jwtService.refreshAccessToken(refreshToken));
