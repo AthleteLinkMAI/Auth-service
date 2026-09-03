@@ -29,7 +29,7 @@ import java.util.UUID;
 @Service
 public class JwtService {
     public static final Duration REFRESH_TOKEN_DURATION = Duration.of(30, ChronoUnit.DAYS);
-    public static final Duration ACCESS_TOKEN_DURATION = Duration.of(15, ChronoUnit.MINUTES);
+    public static final Duration ACCESS_TOKEN_DURATION = Duration.of(5, ChronoUnit.MINUTES);
 
     private final JwtRefreshTokenRepository jwtRefreshTokenRepository;
 
