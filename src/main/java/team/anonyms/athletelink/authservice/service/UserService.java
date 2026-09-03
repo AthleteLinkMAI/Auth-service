@@ -8,6 +8,7 @@ import team.anonyms.athletelink.authservice.dto.service.auth.ChangePasswordReque
 import team.anonyms.athletelink.authservice.dto.service.auth.RegisterRequestServiceDto;
 import team.anonyms.athletelink.authservice.dto.service.user.UserUpdateServiceDto;
 import team.anonyms.athletelink.authservice.entity.User;
+import team.anonyms.athletelink.authservice.exception.EmailAlreadyExistsException;
 import team.anonyms.athletelink.authservice.exception.IncorrectPasswordException;
 import team.anonyms.athletelink.authservice.repository.UserRepository;
 
@@ -32,14 +33,14 @@ public class UserService {
      */
     @Transactional
     public void register(RegisterRequestServiceDto registerRequestServiceDto) {
-        if (userRepository.findByEmail(registerRequestServiceDto.email()).isPresent()) {
-            // TODO: add custom Exception
-            throw new IllegalArgumentException("User with this email already exists.");
+        String email = registerRequestServiceDto.email();
+        if (userRepository.findByEmail(email).isPresent()) {
+            throw new EmailAlreadyExistsException("User with this email already exists; email={}" + email);
         }
 
         User userToRegister = User.builder()
                 .username(registerRequestServiceDto.username())
-                .email(registerRequestServiceDto.email())
+                .email(email)
                 .password(passwordEncoder.encode(registerRequestServiceDto.password()))
                 .isVerified(false)
                 .build();

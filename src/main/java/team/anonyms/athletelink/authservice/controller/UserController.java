@@ -20,7 +20,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/user")
 public class UserController {
-    private static final Logger LOGGER = LoggerFactory.getLogger(UserController.class);
+    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
     private final UserService userService;
     private final UserMapper userMapper;
@@ -40,7 +40,7 @@ public class UserController {
     public ResponseEntity<Void> register(
             @RequestBody @Valid RegisterRequestControllerDto registerRequestControllerDto
     ) {
-        LOGGER.info("Called register; username={}, email={}", registerRequestControllerDto.username(),
+        logger.info("Called register; username={}, email={}", registerRequestControllerDto.username(),
                 registerRequestControllerDto.email());
 
         userService.register(
@@ -55,7 +55,7 @@ public class UserController {
             @RequestBody @Valid UserUpdateControllerDto dto,
             @AuthenticationPrincipal UUID userId
     ) {
-        LOGGER.info("Called update; userId={}", userId);
+        logger.info("Called update; userId={}", userId);
 
         userService.updateUser(userMapper.userUpdateControllerToServiceDto(userId, dto));
         return ResponseEntity.ok().build();
@@ -66,7 +66,7 @@ public class UserController {
             @RequestBody @Valid ChangePasswordRequestControllerDto changePasswordRequestControllerDto,
             @AuthenticationPrincipal UUID userId
     ) {
-        LOGGER.info("Called change-password");
+        logger.info("Called change-password");
 
         userService.changePassword(authorisationMapper.changePasswordRequestControllerToServiceDto(
                 userId, changePasswordRequestControllerDto
@@ -80,7 +80,7 @@ public class UserController {
             @RequestBody @Email String newEmail,
             @AuthenticationPrincipal UUID userId
     ) {
-        LOGGER.info("Called change-email; userId={}, newEmail={}", userId, newEmail);
+        logger.info("Called change-email; userId={}, newEmail={}", userId, newEmail);
 
         userService.changeEmail(userId, newEmail);
         return ResponseEntity.ok().build();

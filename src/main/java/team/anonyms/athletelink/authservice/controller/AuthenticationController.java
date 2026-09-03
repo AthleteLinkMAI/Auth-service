@@ -20,7 +20,7 @@ import org.springframework.http.ResponseCookie;
 @RestController
 @RequestMapping("/auth")
 public class AuthenticationController {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AuthenticationController.class);
+    private static final Logger logger = LoggerFactory.getLogger(AuthenticationController.class);
 
     private final AuthenticationService authenticationService;
     private final JwtService jwtService;
@@ -41,7 +41,7 @@ public class AuthenticationController {
             @RequestBody CredentialsControllerDto credentialsControllerDto,
             HttpServletRequest request
     ) {
-        LOGGER.info("Called login; email={}", credentialsControllerDto.email());
+        logger.info("Called login; email={}", credentialsControllerDto.email());
 
         if (credentialsControllerDto.email() == null || credentialsControllerDto.password() == null) {
             return ResponseEntity.badRequest().build();
@@ -74,14 +74,14 @@ public class AuthenticationController {
 
     @PostMapping("/refresh")
     public ResponseEntity<String> refresh(@CookieValue(name = "refreshToken", required = false) String refreshToken) {
-        LOGGER.info("Called refresh");
+        logger.info("Called refresh");
 
         return ResponseEntity.ok(jwtService.refreshAccessToken(refreshToken));
     }
 
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@CookieValue(name = "refreshToken", required = false) String refreshToken) {
-        LOGGER.info("Called logout");
+        logger.info("Called logout");
 
         if (refreshToken != null) {
             authenticationService.logout(refreshToken);

@@ -16,22 +16,22 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * {@code GlobalExceptionHandler} is dedicated to handle centrally all uncaught runtime exceptions in the application.
+ * {@code GlobalExceptionHandler} is dedicated to centrally handle all uncaught runtime exceptions in the application.
  */
 @RestControllerAdvice
 @SuppressWarnings(value = {"unused"})
 public class GlobalExceptionHandler {
-    private static final Logger LOGGER = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(exception = IllegalArgumentException.class)
     public ResponseEntity<Void> handleIllegalArgumentException(IllegalArgumentException e) {
-        LOGGER.error(e.getMessage());
+        logger.error(e.getMessage());
         return ResponseEntity.badRequest().build();
     }
 
     @ExceptionHandler(exception = EntityNotFoundException.class)
     public ResponseEntity<Void> handleEntityNotFoundException(EntityNotFoundException e) {
-        LOGGER.error(e.getMessage());
+        logger.error(e.getMessage());
         return ResponseEntity.notFound().build();
     }
 
@@ -45,19 +45,19 @@ public class GlobalExceptionHandler {
             errors.put(fieldName, errorMessage);
         });
 
-        LOGGER.error("Validation errors: {}", errors);
+        logger.error("Validation errors: {}", errors);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
     }
 
     @ExceptionHandler(exception = IncorrectPasswordException.class)
     public ResponseEntity<Void> handleIncorrectPasswordException(IncorrectPasswordException e) {
-        LOGGER.error(e.getMessage());
+        logger.error(e.getMessage());
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
     @ExceptionHandler(exception = CodeAlreadyExistsException.class)
     public ResponseEntity<Void> handleCodeAlreadyExistsException(CodeAlreadyExistsException e) {
-        LOGGER.error(e.getMessage());
+        logger.error(e.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT).build();
     }
 }

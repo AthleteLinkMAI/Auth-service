@@ -18,7 +18,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/verify")
 public class VerificationController {
-    private static final Logger LOGGER = LoggerFactory.getLogger(VerificationController.class);
+    private static final Logger logger = LoggerFactory.getLogger(VerificationController.class);
 
     private final VerificationService verificationService;
 
@@ -28,7 +28,7 @@ public class VerificationController {
 
     @PostMapping("/send-email-code")
     public ResponseEntity<Void> sendVerificationCode(@AuthenticationPrincipal UUID userId) {
-        LOGGER.info("Called send-email-code; userId={}", userId);
+        logger.info("Called send-email-code; userId={}", userId);
 
         verificationService.generateAndSendEmailCode(userId);
         return ResponseEntity.noContent().build();
@@ -39,7 +39,7 @@ public class VerificationController {
             @RequestBody String emailVerificationCode,
             @AuthenticationPrincipal UUID userId
     ) {
-        LOGGER.info("Called email; userId={}", userId);
+        logger.info("Called email; userId={}", userId);
 
         verificationService.verifyEmail(userId, emailVerificationCode);
         return ResponseEntity.ok().build();
@@ -48,7 +48,7 @@ public class VerificationController {
 
     @PostMapping("/forgot-password")
     public ResponseEntity<Void> forgotPassword(@RequestBody @Email String email) {
-        LOGGER.info("Called forgot-password; email={}", email);
+        logger.info("Called forgot-password; email={}", email);
 
         verificationService.generateAndSendPasswordResetCode(email);
         return ResponseEntity.ok().build();
@@ -58,7 +58,7 @@ public class VerificationController {
     public ResponseEntity<Void> verifyPasswordReset(
             @RequestBody @Valid VerifyCodeRequestControllerDto verifyCodeRequestControllerDto
     ) {
-        LOGGER.info("Called password-reset; email={}", verifyCodeRequestControllerDto.email());
+        logger.info("Called password-reset; email={}", verifyCodeRequestControllerDto.email());
 
         verificationService.validateAndConsumePasswordResetCode(verifyCodeRequestControllerDto);
         return ResponseEntity.ok().build();
