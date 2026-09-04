@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import team.anonyms.athletelink.authservice.exception.CodeAlreadyExistsException;
 import team.anonyms.athletelink.authservice.exception.IncorrectPasswordException;
+import team.anonyms.athletelink.authservice.exception.InsecureDirectObjectReferenceException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -59,5 +60,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Void> handleCodeAlreadyExistsException(CodeAlreadyExistsException e) {
         logger.error(e.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT).build();
+    }
+
+    @ExceptionHandler(exception = InsecureDirectObjectReferenceException.class)
+    public ResponseEntity<Void> handleInsecureDirectObjectReferenceException(InsecureDirectObjectReferenceException e) {
+        logger.error(e.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 }

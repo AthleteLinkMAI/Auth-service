@@ -1,17 +1,13 @@
 package team.anonyms.athletelink.authservice.service;
 
-import team.anonyms.athletelink.authservice.dto.DeviceData;
 import team.anonyms.athletelink.authservice.dto.service.auth.CredentialsServiceDto;
 import team.anonyms.athletelink.authservice.dto.service.auth.LoginResultServiceDto;
-import team.anonyms.athletelink.authservice.entity.JwtRefreshToken;
 import team.anonyms.athletelink.authservice.entity.User;
 import team.anonyms.athletelink.authservice.repository.UserRepository;
 
 import org.jspecify.annotations.NonNull;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -29,27 +25,6 @@ public class AuthenticationService {
         this.jwtService = jwtService;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
-    }
-
-    // Move to GET /sessions
-    public static List<DeviceData> createDeviceDataListFromJwtRefreshTokenList(
-            List<JwtRefreshToken> jwtRefreshTokenList
-    ) {
-        List<DeviceData> deviceDataList = new ArrayList<>();
-
-        for (JwtRefreshToken jwtRefreshToken : jwtRefreshTokenList) {
-            deviceDataList.add(
-                    new DeviceData(
-                            jwtRefreshToken.getDeviceId(),
-                            jwtRefreshToken.getExpiration(),
-                            jwtRefreshToken.getLastUsed(),
-                            jwtRefreshToken.getUserAgent(),
-                            jwtRefreshToken.getIpAddress()
-                    )
-            );
-        }
-
-        return deviceDataList;
     }
 
     /**
@@ -81,7 +56,7 @@ public class AuthenticationService {
     }
 
     /**
-     * Logging out of system.
+     * Logging out current device from the system.
      * 
      * @param refreshToken token for deletion.
      */

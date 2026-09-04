@@ -7,7 +7,6 @@ CREATE TABLE users(
 
 CREATE TABLE jwt_refresh_tokens(
     id         UUID      PRIMARY KEY,
-    device_id  UUID      NOT NULL UNIQUE,
     token      VARCHAR   NOT NULL UNIQUE,
     expiration TIMESTAMP NOT NULL,
     last_used  TIMESTAMP NOT NULL,
