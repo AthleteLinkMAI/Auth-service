@@ -78,7 +78,7 @@ public class AuthenticationController {
         return ResponseEntity.ok(jwtService.refreshAccessToken(refreshToken));
     }
 
-    @PostMapping("/logout")
+    @DeleteMapping("/logout")
     public ResponseEntity<Void> logout(@CookieValue(name = "refreshToken", required = false) String refreshToken) {
         logger.info("Called logout");
 

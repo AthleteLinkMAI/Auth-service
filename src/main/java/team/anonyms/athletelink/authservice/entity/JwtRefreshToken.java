@@ -5,9 +5,19 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
+import team.anonyms.athletelink.authservice.dto.SessionData;
+
 import java.time.Instant;
 import java.util.UUID;
 
+/**
+ * {@code JwtRefreshToken} contains refresh token data and {@link SessionData}.
+ *
+ * <p>
+ *     It is necessary to keep one entity and don't split it
+ *     since {@link SessionData} and {@code JwtRefreshToken} share common {@code expiration} field.
+ * </p>
+ */
 @Entity
 @Getter
 @Setter
@@ -19,9 +29,6 @@ public class JwtRefreshToken {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
-
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID deviceId;
 
     @NotBlank
     private String token;
