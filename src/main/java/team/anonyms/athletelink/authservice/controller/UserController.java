@@ -8,10 +8,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import team.anonyms.athletelink.authservice.dto.controller.auth.ChangePasswordRequestControllerDto;
-import team.anonyms.athletelink.authservice.dto.controller.auth.RegisterRequestControllerDto;
+import team.anonyms.athletelink.authservice.dto.controller.user.ChangePasswordRequestControllerDto;
+import team.anonyms.athletelink.authservice.dto.controller.user.RegisterRequestControllerDto;
 import team.anonyms.athletelink.authservice.dto.controller.user.UserUpdateControllerDto;
-import team.anonyms.athletelink.authservice.mapper.AuthorisationMapper;
 import team.anonyms.athletelink.authservice.mapper.UserMapper;
 import team.anonyms.athletelink.authservice.service.UserService;
 
@@ -24,16 +23,13 @@ public class UserController {
 
     private final UserService userService;
     private final UserMapper userMapper;
-    private final AuthorisationMapper authorisationMapper;
 
     public UserController(
             UserService userService,
-            UserMapper userMapper,
-            AuthorisationMapper authorisationMapper
+            UserMapper userMapper
     ) {
         this.userService = userService;
         this.userMapper = userMapper;
-        this.authorisationMapper = authorisationMapper;
     }
 
     @PostMapping("/register")
@@ -43,10 +39,7 @@ public class UserController {
         logger.info("Called register; username={}, email={}", registerRequestControllerDto.username(),
                 registerRequestControllerDto.email());
 
-        userService.register(
-                authorisationMapper.registerControllerToServiceDto(registerRequestControllerDto)
-        );
-
+        userService.register(userMapper.registerControllerToServiceDto(registerRequestControllerDto));
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
@@ -68,9 +61,9 @@ public class UserController {
     ) {
         logger.info("Called change-password");
 
-        userService.changePassword(authorisationMapper.changePasswordRequestControllerToServiceDto(
-                userId, changePasswordRequestControllerDto
-        ));
+        userService.changePassword(
+                userMapper.changePasswordRequestControllerToServiceDto(userId, changePasswordRequestControllerDto)
+        );
 
         return ResponseEntity.ok().build();
     }

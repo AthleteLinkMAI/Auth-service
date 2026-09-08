@@ -10,57 +10,71 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import team.anonyms.athletelink.authservice.dto.controller.auth.VerifyCodeRequestControllerDto;
+import team.anonyms.athletelink.authservice.dto.controller.verification.EmailVerificationControllerDto;
+import team.anonyms.athletelink.authservice.dto.controller.verification.PasswordResetRequestControllerDto;
+import team.anonyms.athletelink.authservice.mapper.VerificationMapper;
 import team.anonyms.athletelink.authservice.service.VerificationService;
 
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/verify")
+@RequestMapping("/verification")
 public class VerificationController {
     private static final Logger logger = LoggerFactory.getLogger(VerificationController.class);
 
     private final VerificationService verificationService;
+    private final VerificationMapper verificationMapper;
 
-    public VerificationController(VerificationService verificationService) {
+    public VerificationController(
+            VerificationService verificationService,
+            VerificationMapper verificationMapper
+    ) {
         this.verificationService = verificationService;
+        this.verificationMapper = verificationMapper;
     }
 
-    @PostMapping("/send-email-code")
-    public ResponseEntity<Void> sendVerificationCode(@AuthenticationPrincipal UUID userId) {
+    @PostMapping("/send-email-verification-code")
+    public ResponseEntity<Void> sendEmailVerificationCode(@AuthenticationPrincipal UUID userId) {
         logger.info("Called send-email-code; userId={}", userId);
 
         verificationService.generateAndSendEmailCode(userId);
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/email")
+    @PostMapping("/verify-email")
     public ResponseEntity<Boolean> verifyEmail(
             @RequestBody String emailVerificationCode,
             @AuthenticationPrincipal UUID userId
     ) {
         logger.info("Called email; userId={}", userId);
 
-        verificationService.verifyEmail(userId, emailVerificationCode);
+        EmailVerificationControllerDto controllerDto = new EmailVerificationControllerDto(
+                emailVerificationCode,
+                userId
+        );
+
+        verificationService.verifyEmail(verificationMapper.emailVerificationControllerToServiceDto(controllerDto));
         return ResponseEntity.ok().build();
     }
 
-
-    @PostMapping("/forgot-password")
-    public ResponseEntity<Void> forgotPassword(@RequestBody @Email String email) {
+    @PostMapping("/send-password-reset-code")
+    public ResponseEntity<Void> sendPasswordResetCode(@RequestBody @Email String email) {
         logger.info("Called forgot-password; email={}", email);
 
         verificationService.generateAndSendPasswordResetCode(email);
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/password-reset")
-    public ResponseEntity<Void> verifyPasswordReset(
-            @RequestBody @Valid VerifyCodeRequestControllerDto verifyCodeRequestControllerDto
+    @PostMapping("/verify-password-reset")
+    public ResponseEntity<Void> resetPassword(
+            @RequestBody @Valid PasswordResetRequestControllerDto passwordResetRequestControllerDto
     ) {
-        logger.info("Called password-reset; email={}", verifyCodeRequestControllerDto.email());
+        logger.info("Called password-reset; email={}", passwordResetRequestControllerDto.email());
 
-        verificationService.validateAndConsumePasswordResetCode(verifyCodeRequestControllerDto);
+        verificationService.validatePasswordResetCodeAndResetPassword(
+                verificationMapper.passwordResetRequestServiceToControllerDto(passwordResetRequestControllerDto)
+        );
+
         return ResponseEntity.ok().build();
     }
 }

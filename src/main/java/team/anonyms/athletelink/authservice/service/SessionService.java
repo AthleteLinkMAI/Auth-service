@@ -3,9 +3,12 @@ package team.anonyms.athletelink.authservice.service;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
-import team.anonyms.athletelink.authservice.dto.SessionData;
+import team.anonyms.athletelink.authservice.dto.controller.session.SessionControllerDto;
+import team.anonyms.athletelink.authservice.dto.service.session.SessionServiceDto;
+import team.anonyms.athletelink.authservice.dto.service.session.TerminateSessionRequestServiceDto;
 import team.anonyms.athletelink.authservice.entity.JwtRefreshToken;
 import team.anonyms.athletelink.authservice.exception.InsecureDirectObjectReferenceException;
+import team.anonyms.athletelink.authservice.mapper.SessionMapper;
 import team.anonyms.athletelink.authservice.repository.JwtRefreshTokenRepository;
 
 import java.util.ArrayList;
@@ -15,19 +18,21 @@ import java.util.UUID;
 @Service
 public class SessionService {
     private final JwtRefreshTokenRepository jwtRefreshTokenRepository;
+    private final SessionMapper sessionMapper;
 
-    public SessionService(JwtRefreshTokenRepository jwtRefreshTokenRepository) {
+    public SessionService(JwtRefreshTokenRepository jwtRefreshTokenRepository, SessionMapper sessionMapper) {
         this.jwtRefreshTokenRepository = jwtRefreshTokenRepository;
+        this.sessionMapper = sessionMapper;
     }
 
-    public static List<SessionData> createSessionDataListFromJwtRefreshTokenList(
+    public static List<SessionServiceDto> createSessionDataListFromJwtRefreshTokenList(
             List<JwtRefreshToken> jwtRefreshTokenList
     ) {
-        List<SessionData> sessionDataList = new ArrayList<>();
+        List<SessionServiceDto> sessionControllerDtoList = new ArrayList<>();
 
         for (JwtRefreshToken jwtRefreshToken : jwtRefreshTokenList) {
-            sessionDataList.add(
-                    new SessionData(
+            sessionControllerDtoList.add(
+                    new SessionServiceDto(
                             jwtRefreshToken.getId(),
                             jwtRefreshToken.getExpiration(),
                             jwtRefreshToken.getLastUsed(),
@@ -37,22 +42,25 @@ public class SessionService {
             );
         }
 
-        return sessionDataList;
+        return sessionControllerDtoList;
     }
 
-    public List<SessionData> getSessions(UUID userId) {
-        return createSessionDataListFromJwtRefreshTokenList(jwtRefreshTokenRepository.findAllByUserId(userId));
+    public List<SessionControllerDto> getSessions(UUID userId) {
+        return sessionMapper.sessionServiceListToControllerListDto(
+                createSessionDataListFromJwtRefreshTokenList(jwtRefreshTokenRepository.findAllByUserId(userId))
+        );
     }
 
     @Transactional
-    public void terminateSession(UUID sessionId, UUID userId) {
-        JwtRefreshToken activeSession = jwtRefreshTokenRepository.findById(sessionId)
-                .orElseThrow(() -> new EntityNotFoundException("Session not found; sessionId=" + sessionId));
+    public void terminateSession(TerminateSessionRequestServiceDto terminateSessionDto) {
+        JwtRefreshToken activeSession = jwtRefreshTokenRepository.findById(terminateSessionDto.sessionId()).orElseThrow(
+                () -> new EntityNotFoundException("Session not found; sessionId=" + terminateSessionDto.sessionId())
+        );
 
-        if (!activeSession.getUser().getId().equals(userId)) {
+        if (!activeSession.getUser().getId().equals(terminateSessionDto.userId())) {
             throw new InsecureDirectObjectReferenceException(
-                    "IDOR occurred; jwtRefreshTokenId=" + sessionId + ", actual userId=" +
-                            activeSession.getUser().getId() + ", authenticated userId=" + userId
+                    "IDOR occurred; jwtRefreshTokenId=" + terminateSessionDto.sessionId() + ", actual userId=" +
+                            activeSession.getUser().getId() + ", authenticated userId=" + terminateSessionDto.userId()
             );
         }
 

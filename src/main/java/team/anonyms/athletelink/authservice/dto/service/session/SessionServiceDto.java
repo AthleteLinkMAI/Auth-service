@@ -1,9 +1,9 @@
-package team.anonyms.athletelink.authservice.dto;
+package team.anonyms.athletelink.authservice.dto.service.session;
 
 import java.time.Instant;
 import java.util.UUID;
 
-public record SessionData(
+public record SessionServiceDto(
         UUID sessionId,
         Instant expiration,
         Instant lastUsed,

@@ -5,7 +5,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import team.anonyms.athletelink.authservice.dto.SessionData;
+import team.anonyms.athletelink.authservice.dto.controller.session.SessionControllerDto;
+import team.anonyms.athletelink.authservice.dto.controller.session.TerminateSessionRequestControllerDto;
+import team.anonyms.athletelink.authservice.mapper.SessionMapper;
 import team.anonyms.athletelink.authservice.service.SessionService;
 
 import java.util.List;
@@ -17,13 +19,15 @@ public class SessionController {
     private final Logger logger = LoggerFactory.getLogger(SessionController.class);
 
     private final SessionService sessionService;
+    private final SessionMapper sessionMapper;
 
-    public SessionController(SessionService sessionService) {
+    public SessionController(SessionService sessionService, SessionMapper sessionMapper) {
         this.sessionService = sessionService;
+        this.sessionMapper = sessionMapper;
     }
 
     @GetMapping("/get-all")
-    public ResponseEntity<List<SessionData>> getSessions(@AuthenticationPrincipal UUID userId) {
+    public ResponseEntity<List<SessionControllerDto>> getSessions(@AuthenticationPrincipal UUID userId) {
         logger.info("Called get-sessions; userId={}", userId);
 
         return ResponseEntity.ok(sessionService.getSessions(userId));
@@ -33,7 +37,9 @@ public class SessionController {
     public ResponseEntity<Void> terminateSession(@RequestBody UUID sessionId, @AuthenticationPrincipal UUID userId) {
         logger.info("Called terminate-session; sessionId={}, userId={}", sessionId, userId);
 
-        sessionService.terminateSession(sessionId, userId);
+        TerminateSessionRequestControllerDto controllerDto = new TerminateSessionRequestControllerDto(sessionId, userId);
+        sessionService.terminateSession(sessionMapper.terminateSessionRequestControllerToServiceDto(controllerDto));
+
         return ResponseEntity.noContent().build();
     }
 

@@ -1,4 +1,4 @@
-package team.anonyms.athletelink.authservice.dto.controller.auth;
+package team.anonyms.athletelink.authservice.dto.controller.user;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

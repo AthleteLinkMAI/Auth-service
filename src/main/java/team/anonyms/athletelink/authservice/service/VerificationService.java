@@ -3,7 +3,8 @@ package team.anonyms.athletelink.authservice.service;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import team.anonyms.athletelink.authservice.dto.controller.auth.VerifyCodeRequestControllerDto;
+import team.anonyms.athletelink.authservice.dto.service.verification.EmailVerificationServiceDto;
+import team.anonyms.athletelink.authservice.dto.service.verification.PasswordResetRequestServiceDto;
 import team.anonyms.athletelink.authservice.entity.User;
 import team.anonyms.athletelink.authservice.entity.code.EmailVerificationCode;
 import team.anonyms.athletelink.authservice.entity.code.PasswordResetCode;
@@ -67,19 +68,19 @@ public class VerificationService {
     }
 
     @Transactional
-    public void verifyEmail(UUID userId, String code) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("User not found; userId=" + userId));
+    public void verifyEmail(EmailVerificationServiceDto emailVerificationServiceDto) {
+        User user = userRepository.findById(emailVerificationServiceDto.userId())
+                .orElseThrow(() -> new EntityNotFoundException("User not found; userId=" + emailVerificationServiceDto.userId()));
 
-        EmailVerificationCode emailVerificationCode = emailVerificationCodeRepository.findByUserId(userId)
-                .orElseThrow(() -> new EntityNotFoundException("No verification code found for user; userId=" + userId));
+        EmailVerificationCode emailVerificationCode = emailVerificationCodeRepository.findByUserId(emailVerificationServiceDto.userId())
+                .orElseThrow(() -> new EntityNotFoundException("No verification code found for user; userId=" + emailVerificationServiceDto.userId()));
 
         if (emailVerificationCode.getExpiration().isBefore(Instant.now())) {
             emailVerificationCodeRepository.delete(emailVerificationCode);
             throw new IllegalArgumentException("Verification code has expired");
         }
 
-        if (!emailVerificationCode.getCode().equals(code)) {
+        if (!emailVerificationCode.getCode().equals(emailVerificationServiceDto.emailVerificationCode())) {
             throw new IllegalArgumentException("Invalid verification code");
         }
 
@@ -108,9 +109,11 @@ public class VerificationService {
     }
 
     @Transactional
-    public void validateAndConsumePasswordResetCode(VerifyCodeRequestControllerDto verifyCodeRequestControllerDto) {
-        User user = userRepository.findByEmail(verifyCodeRequestControllerDto.email())
-                .orElseThrow(() -> new EntityNotFoundException("User not found; email={}" + verifyCodeRequestControllerDto.email()));
+    public void validatePasswordResetCodeAndResetPassword(
+            PasswordResetRequestServiceDto passwordResetRequestServiceDto
+    ) {
+        User user = userRepository.findByEmail(passwordResetRequestServiceDto.email()).orElseThrow(
+                () -> new EntityNotFoundException("User not found; email={}" + passwordResetRequestServiceDto.email()));
 
         PasswordResetCode passwordResetCode = passwordResetCodeRepository.findByUserId(user.getId())
                 .orElseThrow(() -> new EntityNotFoundException("No verification code found for user; userId=" + user.getId()));
@@ -120,13 +123,13 @@ public class VerificationService {
             throw new IllegalArgumentException("Verification code has expired");
         }
 
-        if (!passwordResetCode.getCode().equals(verifyCodeRequestControllerDto.code())) {
+        if (!passwordResetCode.getCode().equals(passwordResetRequestServiceDto.code())) {
             throw new IllegalArgumentException("Invalid verification code");
         }
 
         passwordResetCodeRepository.delete(passwordResetCode);
         // Notification service will generate new password and send it to a user's email
-        sendToKafka("Generate new password for email=" + verifyCodeRequestControllerDto.email());
+        sendToKafka("Generate new password for email=" + passwordResetRequestServiceDto.email());
     }
 
     private String generateRawCode() {
