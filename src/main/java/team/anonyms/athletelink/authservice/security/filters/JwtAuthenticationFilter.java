@@ -5,7 +5,9 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -19,8 +21,12 @@ import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+    public static final String JWT_DENYLIST_KEY_PREFIX = "jwt:denylist:";
+
     private final JwtService jwtService;
+    private final StringRedisTemplate stringRedisTemplate;
 
     @Override
     protected void doFilterInternal(
@@ -39,6 +45,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             if (jwtService.isValid(jwt)) {
+                if (stringRedisTemplate.hasKey(JWT_DENYLIST_KEY_PREFIX + jwtService.extractId(jwt))) {
+                    return;
+                }
+
                 String userId = jwtService.extractUserId(jwt);
 
                 if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -55,7 +65,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
         } catch (Exception e) {
-            logger.error("Cannot set user authentication: {}", e);
+            log.error("Cannot set user authentication: {}", e.getMessage(), e);
         }
 
         filterChain.doFilter(request, response);

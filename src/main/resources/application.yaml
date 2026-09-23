@@ -2,9 +2,9 @@ spring:
   application:
     name: auth-service
   datasource:
-    username: ${DB_USER}
-    password: ${DB_PASSWORD}
-    url: ${DB_URL}
+    username: ${POSTGRES_USER:admin}
+    password: ${POSTGRES_PASSWORD:admin}
+    url: ${POSTGRES_DB:postgres}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -16,14 +16,21 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
     show-sql: false
     open-in-view: false
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:secret}
+
   flyway:
     enabled: true
     locations: classpath:database/migrations
+
 
 logging:
   level:
     root: INFO
   file:
-    name: /logs/HomeRoutine-authorisation.log
+    name: /logs/athletelink-auth-service.log
   pattern:
     file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"

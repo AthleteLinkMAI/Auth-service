@@ -1,5 +1,6 @@
 package team.anonyms.athletelink.authservice.service;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -66,7 +67,7 @@ public class JwtService {
 
         Instant now = Instant.now();
         Instant expiration = now.plus(REFRESH_TOKEN_DURATION);
-        String rawToken = generate(user.getId(), expiration);
+        String rawToken = generateJwtToken(user.getId(), expiration);
 
         JwtRefreshToken jwtRefreshToken = JwtRefreshToken.builder()
                 .token(rawToken)
@@ -81,6 +82,14 @@ public class JwtService {
         return rawToken;
     }
 
+    private Claims extractClaims(String token) {
+        return Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
+    }
+
+    public String extractId(String token) {
+        return extractClaims(token).getId();
+    }
+
     /**
      * Extracts user ID from a JWT token.
      *
@@ -89,17 +98,21 @@ public class JwtService {
      * @return user ID
      */
     public String extractUserId(String token) {
-        return Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload().getSubject();
+        return extractClaims(token).getSubject();
+    }
+
+    public Instant extractExpiration(String token) {
+        return extractClaims(token).getExpiration().toInstant();
     }
 
     /**
      * @param jwtToken any provided {@link String} instance.
      *
-     * @return {@code true} if provided {@code jwtToken} is valid, {@code false} if {@code jwtToken} is not valid,
+     * @return {@code true} if provided {@code jwtToken} is valid, {@code false} if {@code jwtToken} is expired,
      * or it is a string with whitespaces only, empty string, or {@code jwtToken} is null.
      */
     public Boolean isValid(@Nullable String jwtToken) {
-        if (jwtToken == null || jwtToken.trim().isEmpty()) {
+        if (jwtToken == null || jwtToken.trim().isEmpty() || extractExpiration(jwtToken).isBefore(Instant.now())) {
             return false;
         }
 
@@ -109,6 +122,29 @@ public class JwtService {
         } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
+    }
+
+    /**
+     * Generates a new JWT token based on user ID.
+     *
+     * @param userId user ID.
+     * @param expiration expiration of the new JWT token.
+     *
+     * @return JWT token.
+     */
+    private String generateJwtToken(UUID userId, Instant expiration) {
+        return Jwts.builder()
+                .id(UUID.randomUUID().toString())
+                .subject(userId.toString())
+                .issuedAt(Date.from(Instant.now()))
+                .expiration(Date.from(expiration))
+                .signWith(key)
+                .compact();
+    }
+
+    private String generateAccessToken(User user) {
+        Instant expiration = Instant.now().plus(ACCESS_TOKEN_DURATION);
+        return generateJwtToken(user.getId(), expiration);
     }
 
     /**
@@ -145,27 +181,5 @@ public class JwtService {
     @Transactional
     public void deleteRefreshToken(String refreshToken) {
         jwtRefreshTokenRepository.findByToken(refreshToken).ifPresent(jwtRefreshTokenRepository::delete);
-    }
-
-    /**
-     * Generates a new JWT token based on user ID.
-     *
-     * @param userId user ID.
-     * @param expiration expiration of the new JWT token.
-     *
-     * @return JWT token.
-     */
-    private String generate(UUID userId, Instant expiration) {
-        return Jwts.builder()
-                .subject(userId.toString())
-                .issuedAt(Date.from(Instant.now()))
-                .expiration(Date.from(expiration))
-                .signWith(key)
-                .compact();
-    }
-
-    private String generateAccessToken(User user) {
-        Instant expiration = Instant.now().plus(ACCESS_TOKEN_DURATION);
-        return generate(user.getId(), expiration);
     }
 }
