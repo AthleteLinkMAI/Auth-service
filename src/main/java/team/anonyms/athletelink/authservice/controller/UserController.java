@@ -3,8 +3,7 @@ package team.anonyms.athletelink.authservice.controller;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -20,9 +19,8 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/user")
 @RequiredArgsConstructor
+@Slf4j
 public class UserController {
-    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
-
     private final UserService userService;
     private final UserMapper userMapper;
 
@@ -30,7 +28,7 @@ public class UserController {
     public ResponseEntity<Void> register(
             @RequestBody @Valid RegisterRequestControllerDto registerRequestControllerDto
     ) {
-        logger.info("Called register; username={}, email={}", registerRequestControllerDto.username(),
+        log.info("Called register; username={}, email={}", registerRequestControllerDto.username(),
                 registerRequestControllerDto.email());
 
         userService.register(userMapper.registerControllerToServiceDto(registerRequestControllerDto));
@@ -42,7 +40,7 @@ public class UserController {
             @RequestBody @Valid UserUpdateControllerDto dto,
             @AuthenticationPrincipal UUID userId
     ) {
-        logger.info("Called update; userId={}", userId);
+        log.info("Called update; userId={}", userId);
 
         userService.updateUser(userMapper.userUpdateControllerToServiceDto(userId, dto));
         return ResponseEntity.ok().build();
@@ -53,7 +51,7 @@ public class UserController {
             @RequestBody @Valid ChangePasswordRequestControllerDto changePasswordRequestControllerDto,
             @AuthenticationPrincipal UUID userId
     ) {
-        logger.info("Called change-password");
+        log.info("Called change-password");
 
         userService.changePassword(
                 userMapper.changePasswordRequestControllerToServiceDto(userId, changePasswordRequestControllerDto)
@@ -67,7 +65,7 @@ public class UserController {
             @RequestBody @Email String newEmail,
             @AuthenticationPrincipal UUID userId
     ) {
-        logger.info("Called change-email; userId={}, newEmail={}", userId, newEmail);
+        log.info("Called change-email; userId={}, newEmail={}", userId, newEmail);
 
         userService.changeEmail(userId, newEmail);
         return ResponseEntity.ok().build();

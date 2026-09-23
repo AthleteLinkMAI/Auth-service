@@ -3,8 +3,7 @@ package team.anonyms.athletelink.authservice.controller;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,15 +20,14 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/verification")
 @RequiredArgsConstructor
+@Slf4j
 public class VerificationController {
-    private static final Logger logger = LoggerFactory.getLogger(VerificationController.class);
-
     private final VerificationService verificationService;
     private final VerificationMapper verificationMapper;
 
     @PostMapping("/send-email-verification-code")
     public ResponseEntity<Void> sendEmailVerificationCode(@AuthenticationPrincipal UUID userId) {
-        logger.info("Called send-email-code; userId={}", userId);
+        log.info("Called send-email-code; userId={}", userId);
 
         verificationService.generateAndSendEmailCode(userId);
         return ResponseEntity.noContent().build();
@@ -40,7 +38,7 @@ public class VerificationController {
             @RequestBody String emailVerificationCode,
             @AuthenticationPrincipal UUID userId
     ) {
-        logger.info("Called email; userId={}", userId);
+        log.info("Called email; userId={}", userId);
 
         EmailVerificationControllerDto controllerDto = new EmailVerificationControllerDto(
                 emailVerificationCode,
@@ -53,7 +51,7 @@ public class VerificationController {
 
     @PostMapping("/send-password-reset-code")
     public ResponseEntity<Void> sendPasswordResetCode(@RequestBody @Email String email) {
-        logger.info("Called forgot-password; email={}", email);
+        log.info("Called forgot-password; email={}", email);
 
         verificationService.generateAndSendPasswordResetCode(email);
         return ResponseEntity.ok().build();
@@ -63,7 +61,7 @@ public class VerificationController {
     public ResponseEntity<Void> resetPassword(
             @RequestBody @Valid PasswordResetRequestControllerDto passwordResetRequestControllerDto
     ) {
-        logger.info("Called password-reset; email={}", passwordResetRequestControllerDto.email());
+        log.info("Called password-reset; email={}", passwordResetRequestControllerDto.email());
 
         verificationService.validatePasswordResetCodeAndResetPassword(
                 verificationMapper.passwordResetRequestServiceToControllerDto(passwordResetRequestControllerDto)
