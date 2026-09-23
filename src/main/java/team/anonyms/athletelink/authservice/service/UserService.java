@@ -2,6 +2,7 @@ package team.anonyms.athletelink.authservice.service;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import team.anonyms.athletelink.authservice.dto.service.user.ChangePasswordRequestServiceDto;
@@ -15,15 +16,11 @@ import team.anonyms.athletelink.authservice.repository.UserRepository;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
     private final BCryptPasswordEncoder passwordEncoder;
 
     private final UserRepository userRepository;
-
-    public UserService(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
 
     /**
      * Registers new user in the system.

@@ -2,6 +2,7 @@ package team.anonyms.athletelink.authservice.controller;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -18,19 +19,12 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/user")
+@RequiredArgsConstructor
 public class UserController {
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
     private final UserService userService;
     private final UserMapper userMapper;
-
-    public UserController(
-            UserService userService,
-            UserMapper userMapper
-    ) {
-        this.userService = userService;
-        this.userMapper = userMapper;
-    }
 
     @PostMapping("/register")
     public ResponseEntity<Void> register(

@@ -11,7 +11,7 @@
     </parent>
 
     <groupId>team-anonyms</groupId>
-    <artifactId>athelete-link-authorisation-service</artifactId>
+    <artifactId>athelete-link-auth-service</artifactId>
     <version>0.0.1</version>
 
     <licenses>

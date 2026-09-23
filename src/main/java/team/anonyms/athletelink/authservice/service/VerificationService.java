@@ -1,6 +1,7 @@
 package team.anonyms.athletelink.authservice.service;
 
 import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import team.anonyms.athletelink.authservice.dto.service.verification.EmailVerificationServiceDto;
@@ -24,6 +25,7 @@ import java.util.UUID;
  */
 // TODO: add connection with Kafka
 @Service
+@RequiredArgsConstructor
 public class VerificationService {
     // Symbols for generating random codes
     private static final String SYMBOLS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -33,16 +35,6 @@ public class VerificationService {
     private final EmailVerificationCodeRepository emailVerificationCodeRepository;
     private final PasswordResetCodeRepository passwordResetCodeRepository;
     private final UserRepository userRepository;
-
-    public VerificationService(
-            EmailVerificationCodeRepository emailVerificationCodeRepository,
-            PasswordResetCodeRepository passwordResetCodeRepository,
-            UserRepository userRepository
-    ) {
-        this.emailVerificationCodeRepository = emailVerificationCodeRepository;
-        this.passwordResetCodeRepository = passwordResetCodeRepository;
-        this.userRepository = userRepository;
-    }
 
     @Transactional
     public void generateAndSendEmailCode(UUID userId) {

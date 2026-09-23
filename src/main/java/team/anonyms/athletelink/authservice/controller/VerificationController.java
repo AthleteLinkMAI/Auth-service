@@ -2,6 +2,7 @@ package team.anonyms.athletelink.authservice.controller;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -19,19 +20,12 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/verification")
+@RequiredArgsConstructor
 public class VerificationController {
     private static final Logger logger = LoggerFactory.getLogger(VerificationController.class);
 
     private final VerificationService verificationService;
     private final VerificationMapper verificationMapper;
-
-    public VerificationController(
-            VerificationService verificationService,
-            VerificationMapper verificationMapper
-    ) {
-        this.verificationService = verificationService;
-        this.verificationMapper = verificationMapper;
-    }
 
     @PostMapping("/send-email-verification-code")
     public ResponseEntity<Void> sendEmailVerificationCode(@AuthenticationPrincipal UUID userId) {

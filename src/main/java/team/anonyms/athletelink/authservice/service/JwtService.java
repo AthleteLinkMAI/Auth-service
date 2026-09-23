@@ -6,6 +6,7 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
 import team.anonyms.athletelink.authservice.entity.JwtRefreshToken;
 import team.anonyms.athletelink.authservice.entity.User;
 import team.anonyms.athletelink.authservice.repository.JwtRefreshTokenRepository;
@@ -27,6 +28,7 @@ import java.util.UUID;
  * {@code JwtService} is dedicated to handle most of JWT-related things.
  */
 @Service
+@RequiredArgsConstructor
 public class JwtService {
     public static final Duration REFRESH_TOKEN_DURATION = Duration.of(30, ChronoUnit.DAYS);
     public static final Duration ACCESS_TOKEN_DURATION = Duration.of(5, ChronoUnit.MINUTES);
@@ -38,10 +40,6 @@ public class JwtService {
 
     @Value("${jwt.secret}")
     private String secret; // TODO: add JWT secret to application.yaml
-
-    public JwtService(JwtRefreshTokenRepository jwtRefreshTokenRepository) {
-        this.jwtRefreshTokenRepository = jwtRefreshTokenRepository;
-    }
 
     @PostConstruct
     private void init() {

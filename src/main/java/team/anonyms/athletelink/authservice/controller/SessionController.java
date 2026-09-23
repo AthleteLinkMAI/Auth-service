@@ -1,5 +1,6 @@
 package team.anonyms.athletelink.authservice.controller;
 
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -15,16 +16,12 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/session")
+@RequiredArgsConstructor
 public class SessionController {
     private final Logger logger = LoggerFactory.getLogger(SessionController.class);
 
     private final SessionService sessionService;
     private final SessionMapper sessionMapper;
-
-    public SessionController(SessionService sessionService, SessionMapper sessionMapper) {
-        this.sessionService = sessionService;
-        this.sessionMapper = sessionMapper;
-    }
 
     @GetMapping("/get-all")
     public ResponseEntity<List<SessionControllerDto>> getSessions(@AuthenticationPrincipal UUID userId) {

@@ -1,5 +1,6 @@
 package team.anonyms.athletelink.authservice.service;
 
+import lombok.RequiredArgsConstructor;
 import team.anonyms.athletelink.authservice.dto.service.auth.CredentialsServiceDto;
 import team.anonyms.athletelink.authservice.dto.service.auth.LoginResultServiceDto;
 import team.anonyms.athletelink.authservice.entity.User;
@@ -11,21 +12,13 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class AuthenticationService {
     private final JwtService jwtService;
     private final UserRepository userRepository;
 
     private final BCryptPasswordEncoder passwordEncoder;
 
-    public AuthenticationService(
-            JwtService jwtService,
-            UserRepository userRepository,
-            BCryptPasswordEncoder passwordEncoder
-    ) {
-        this.jwtService = jwtService;
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
 
     /**
      * Login a user into system.

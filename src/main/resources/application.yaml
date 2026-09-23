@@ -1,6 +1,6 @@
 spring:
   application:
-    name: Authorisation
+    name: auth-service
   datasource:
     username: ${DB_USER}
     password: ${DB_PASSWORD}

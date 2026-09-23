@@ -1,6 +1,7 @@
 package team.anonyms.athletelink.authservice.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import team.anonyms.athletelink.authservice.dto.controller.auth.CredentialsControllerDto;
 import team.anonyms.athletelink.authservice.dto.controller.auth.LoginResultControllerDto;
 import team.anonyms.athletelink.authservice.dto.service.auth.LoginResultServiceDto;
@@ -18,22 +19,13 @@ import org.springframework.http.ResponseCookie;
 
 @RestController
 @RequestMapping("/auth")
+@RequiredArgsConstructor
 public class AuthenticationController {
     private static final Logger logger = LoggerFactory.getLogger(AuthenticationController.class);
 
     private final AuthenticationService authenticationService;
     private final JwtService jwtService;
     private final AuthorisationMapper authorisationMapper;
-
-    public AuthenticationController(
-            AuthenticationService authenticationService,
-            JwtService jwtService,
-            AuthorisationMapper authorisationMapper
-    ) {
-        this.authenticationService = authenticationService;
-        this.jwtService = jwtService;
-        this.authorisationMapper = authorisationMapper;
-    }
 
     @PostMapping("/login")
     public ResponseEntity<LoginResultControllerDto> login(
