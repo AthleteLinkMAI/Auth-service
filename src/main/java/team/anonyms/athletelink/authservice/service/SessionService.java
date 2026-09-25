@@ -2,6 +2,7 @@ package team.anonyms.athletelink.authservice.service;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import team.anonyms.athletelink.authservice.dto.controller.session.SessionControllerDto;
 import team.anonyms.athletelink.authservice.dto.service.session.SessionServiceDto;
@@ -16,14 +17,10 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class SessionService {
     private final JwtRefreshTokenRepository jwtRefreshTokenRepository;
     private final SessionMapper sessionMapper;
-
-    public SessionService(JwtRefreshTokenRepository jwtRefreshTokenRepository, SessionMapper sessionMapper) {
-        this.jwtRefreshTokenRepository = jwtRefreshTokenRepository;
-        this.sessionMapper = sessionMapper;
-    }
 
     public static List<SessionServiceDto> createSessionDataListFromJwtRefreshTokenList(
             List<JwtRefreshToken> jwtRefreshTokenList
@@ -33,7 +30,7 @@ public class SessionService {
         for (JwtRefreshToken jwtRefreshToken : jwtRefreshTokenList) {
             sessionControllerDtoList.add(
                     new SessionServiceDto(
-                            jwtRefreshToken.getId(),
+                            jwtRefreshToken.getJti(),
                             jwtRefreshToken.getExpiration(),
                             jwtRefreshToken.getLastUsed(),
                             jwtRefreshToken.getUserAgent(),

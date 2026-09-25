@@ -15,6 +15,6 @@ public interface PasswordResetCodeRepository extends JpaRepository<PasswordReset
 
     @Transactional
     @Modifying
-    @Query("DELETE FROM PasswordResetVerificationCode vc WHERE vc.expiration < :now")
+    @Query("DELETE FROM PasswordResetCode vc WHERE vc.expiration < :now")
     void deleteAllByExpirationBefore(Instant now);
 }

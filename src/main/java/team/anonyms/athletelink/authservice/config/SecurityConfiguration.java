@@ -1,5 +1,6 @@
 package team.anonyms.athletelink.authservice.config;
 
+import lombok.RequiredArgsConstructor;
 import team.anonyms.athletelink.authservice.security.filters.JwtAuthenticationFilter;
 
 import org.springframework.context.annotation.Bean;
@@ -14,12 +15,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfiguration {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-
-    public SecurityConfiguration(JwtAuthenticationFilter jwtAuthenticationFilter) {
-        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) {
@@ -29,7 +27,8 @@ public class SecurityConfiguration {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
-                        "/auth/**",
+                        "/auth/login",
+                        "/auth/refresh",
                         "/user/register",
                         "/verify/forgot-password",
                         "/verify/password-reset"

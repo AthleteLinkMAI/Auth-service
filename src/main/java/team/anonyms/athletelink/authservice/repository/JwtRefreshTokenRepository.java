@@ -18,6 +18,6 @@ public interface JwtRefreshTokenRepository extends JpaRepository<JwtRefreshToken
 
     @Transactional
     @Modifying
-    @Query("DELETE FROM PasswordResetVerificationCode vc WHERE vc.expiration < :now")
+    @Query("DELETE FROM JwtRefreshToken token WHERE token.expiration < :now")
     void deleteAllByExpirationBefore(Instant now);
 }

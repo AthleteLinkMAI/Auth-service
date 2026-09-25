@@ -1,6 +1,9 @@
 package team.anonyms.athletelink.authservice.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
 import team.anonyms.athletelink.authservice.dto.controller.auth.CredentialsControllerDto;
 import team.anonyms.athletelink.authservice.dto.controller.auth.LoginResultControllerDto;
 import team.anonyms.athletelink.authservice.dto.service.auth.LoginResultServiceDto;
@@ -8,8 +11,6 @@ import team.anonyms.athletelink.authservice.mapper.AuthorisationMapper;
 import team.anonyms.athletelink.authservice.service.AuthenticationService;
 import team.anonyms.athletelink.authservice.service.JwtService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,29 +19,19 @@ import org.springframework.http.ResponseCookie;
 
 @RestController
 @RequestMapping("/auth")
+@RequiredArgsConstructor
+@Slf4j
 public class AuthenticationController {
-    private static final Logger logger = LoggerFactory.getLogger(AuthenticationController.class);
-
     private final AuthenticationService authenticationService;
     private final JwtService jwtService;
     private final AuthorisationMapper authorisationMapper;
-
-    public AuthenticationController(
-            AuthenticationService authenticationService,
-            JwtService jwtService,
-            AuthorisationMapper authorisationMapper
-    ) {
-        this.authenticationService = authenticationService;
-        this.jwtService = jwtService;
-        this.authorisationMapper = authorisationMapper;
-    }
 
     @PostMapping("/login")
     public ResponseEntity<LoginResultControllerDto> login(
             @RequestBody CredentialsControllerDto credentialsControllerDto,
             HttpServletRequest request
     ) {
-        logger.info("Called login; email={}", credentialsControllerDto.email());
+        log.info("Called login; email={}", credentialsControllerDto.email());
 
         if (credentialsControllerDto.email() == null || credentialsControllerDto.password() == null) {
             return ResponseEntity.badRequest().build();
@@ -73,17 +64,20 @@ public class AuthenticationController {
 
     @PostMapping("/refresh")
     public ResponseEntity<String> refresh(@CookieValue(name = "refreshToken") String refreshToken) {
-        logger.info("Called refresh");
+        log.info("Called refresh");
 
         return ResponseEntity.ok(jwtService.refreshAccessToken(refreshToken));
     }
 
     @DeleteMapping("/logout")
-    public ResponseEntity<Void> logout(@CookieValue(name = "refreshToken", required = false) String refreshToken) {
-        logger.info("Called logout");
+    public ResponseEntity<Void> logout(
+            @NonNull HttpServletRequest request,
+            @CookieValue(name = "refreshToken", required = false) String refreshToken
+    ) {
+        log.info("Called logout");
 
         if (refreshToken != null) {
-            authenticationService.logout(refreshToken);
+            authenticationService.logout(refreshToken, request.getHeader("Authorization").substring(7));
         }
 
         ResponseCookie cookieDeleted = ResponseCookie.from("refreshToken", "")

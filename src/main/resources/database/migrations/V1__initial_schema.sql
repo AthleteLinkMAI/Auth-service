@@ -6,7 +6,7 @@ CREATE TABLE users(
 );
 
 CREATE TABLE jwt_refresh_tokens(
-    id         UUID      PRIMARY KEY,
+    jti         UUID      PRIMARY KEY,
     token      VARCHAR   NOT NULL UNIQUE,
     expiration TIMESTAMP NOT NULL,
     last_used  TIMESTAMP NOT NULL,

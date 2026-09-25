@@ -1,5 +1,7 @@
 package team.anonyms.athletelink.authservice.service;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import team.anonyms.athletelink.authservice.dto.service.auth.CredentialsServiceDto;
 import team.anonyms.athletelink.authservice.dto.service.auth.LoginResultServiceDto;
 import team.anonyms.athletelink.authservice.entity.User;
@@ -8,24 +10,20 @@ import team.anonyms.athletelink.authservice.repository.UserRepository;
 import org.jspecify.annotations.NonNull;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+
+import static team.anonyms.athletelink.authservice.security.filters.JwtAuthenticationFilter.JWT_DENYLIST_KEY_PREFIX;
 
 @Service
+@RequiredArgsConstructor
 public class AuthenticationService {
     private final JwtService jwtService;
     private final UserRepository userRepository;
-
     private final BCryptPasswordEncoder passwordEncoder;
 
-    public AuthenticationService(
-            JwtService jwtService,
-            UserRepository userRepository,
-            BCryptPasswordEncoder passwordEncoder
-    ) {
-        this.jwtService = jwtService;
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
+    private final StringRedisTemplate stringRedisTemplate;
 
     /**
      * Login a user into system.
@@ -58,9 +56,14 @@ public class AuthenticationService {
     /**
      * Logging out current device from the system.
      * 
-     * @param refreshToken token for deletion.
+     * @param refreshToken refreshToken for deletion.
+     * @param accessToken accessToken for including in denylist.
      */
-    public void logout(String refreshToken) {
+    public void logout(String refreshToken, String accessToken) {
         jwtService.deleteRefreshToken(refreshToken);
+
+        stringRedisTemplate.opsForValue().set(
+                JWT_DENYLIST_KEY_PREFIX + jwtService.extractId(accessToken), "", 5, TimeUnit.MINUTES
+        );
     }
 }
