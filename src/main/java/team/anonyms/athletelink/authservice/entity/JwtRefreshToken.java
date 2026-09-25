@@ -27,8 +27,7 @@ import java.util.UUID;
 @Table(name = "jwt_refresh_tokens")
 public class JwtRefreshToken {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    private UUID jti;
 
     @NotBlank
     private String token;

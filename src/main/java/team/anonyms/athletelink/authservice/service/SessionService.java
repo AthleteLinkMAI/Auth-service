@@ -30,7 +30,7 @@ public class SessionService {
         for (JwtRefreshToken jwtRefreshToken : jwtRefreshTokenList) {
             sessionControllerDtoList.add(
                     new SessionServiceDto(
-                            jwtRefreshToken.getId(),
+                            jwtRefreshToken.getJti(),
                             jwtRefreshToken.getExpiration(),
                             jwtRefreshToken.getLastUsed(),
                             jwtRefreshToken.getUserAgent(),

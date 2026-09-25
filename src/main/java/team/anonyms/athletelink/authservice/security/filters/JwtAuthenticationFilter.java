@@ -45,7 +45,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             if (jwtService.isValid(jwt)) {
+                if (!"ACCESS".equals(jwtService.extractType(jwt))) {
+                    filterChain.doFilter(request, response);
+                    return;
+                }
+
                 if (stringRedisTemplate.hasKey(JWT_DENYLIST_KEY_PREFIX + jwtService.extractId(jwt))) {
+                    filterChain.doFilter(request, response);
                     return;
                 }
 

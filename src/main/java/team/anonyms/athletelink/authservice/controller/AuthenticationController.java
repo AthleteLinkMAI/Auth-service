@@ -3,6 +3,7 @@ package team.anonyms.athletelink.authservice.controller;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
 import team.anonyms.athletelink.authservice.dto.controller.auth.CredentialsControllerDto;
 import team.anonyms.athletelink.authservice.dto.controller.auth.LoginResultControllerDto;
 import team.anonyms.athletelink.authservice.dto.service.auth.LoginResultServiceDto;
@@ -69,11 +70,14 @@ public class AuthenticationController {
     }
 
     @DeleteMapping("/logout")
-    public ResponseEntity<Void> logout(@CookieValue(name = "refreshToken", required = false) String refreshToken) {
+    public ResponseEntity<Void> logout(
+            @NonNull HttpServletRequest request,
+            @CookieValue(name = "refreshToken", required = false) String refreshToken
+    ) {
         log.info("Called logout");
 
         if (refreshToken != null) {
-            authenticationService.logout(refreshToken);
+            authenticationService.logout(refreshToken, request.getHeader("Authorization").substring(7));
         }
 
         ResponseCookie cookieDeleted = ResponseCookie.from("refreshToken", "")

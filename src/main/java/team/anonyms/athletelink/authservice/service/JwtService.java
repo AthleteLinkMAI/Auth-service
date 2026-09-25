@@ -1,8 +1,6 @@
 package team.anonyms.athletelink.authservice.service;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
@@ -48,6 +46,35 @@ public class JwtService {
     }
 
     /**
+     * Generates a new JWT token based on user ID.
+     *
+     * @param userId user ID.
+     * @param expiration expiration of the new JWT token.
+     *
+     * @return JWT token.
+     */
+    private String generateJwtToken(UUID userId, Instant expiration, String jwtTokenType) {
+        return Jwts.builder()
+                .id(UUID.randomUUID().toString())
+                .subject(userId.toString())
+                .issuedAt(Date.from(Instant.now()))
+                .expiration(Date.from(expiration))
+                .claim("type", jwtTokenType)
+                .signWith(key)
+                .compact();
+    }
+
+    private String generateAccessToken(User user) {
+        Instant expiration = Instant.now().plus(ACCESS_TOKEN_DURATION);
+        return generateJwtToken(user.getId(), expiration, "ACCESS");
+    }
+
+    private String generateRefreshToken(User user) {
+        Instant expiration = Instant.now().plus(REFRESH_TOKEN_DURATION);
+        return generateJwtToken(user.getId(), expiration, "REFRESH");
+    }
+
+    /**
      * Looks for existed JWT refresh tokens in database and checks if any of tokens matches to the current device.
      * If JWT refresh token has already been existed this method updated the expiry date, if it hasn't been existed
      * this method add new one to database.
@@ -67,10 +94,11 @@ public class JwtService {
 
         Instant now = Instant.now();
         Instant expiration = now.plus(REFRESH_TOKEN_DURATION);
-        String rawToken = generateJwtToken(user.getId(), expiration);
+        String refreshToken = generateRefreshToken(user);
 
         JwtRefreshToken jwtRefreshToken = JwtRefreshToken.builder()
-                .token(rawToken)
+                .jti(UUID.fromString(extractId(refreshToken)))
+                .token(refreshToken)
                 .expiration(expiration)
                 .lastUsed(now)
                 .userAgent(userAgent)
@@ -79,7 +107,7 @@ public class JwtService {
                 .build();
 
         jwtRefreshTokenRepository.save(jwtRefreshToken);
-        return rawToken;
+        return refreshToken;
     }
 
     private Claims extractClaims(String token) {
@@ -105,6 +133,10 @@ public class JwtService {
         return extractClaims(token).getExpiration().toInstant();
     }
 
+    public String extractType(String token) {
+        return extractClaims(token).get("type", String.class);
+    }
+
     /**
      * @param jwtToken any provided {@link String} instance.
      *
@@ -112,39 +144,20 @@ public class JwtService {
      * or it is a string with whitespaces only, empty string, or {@code jwtToken} is null.
      */
     public Boolean isValid(@Nullable String jwtToken) {
-        if (jwtToken == null || jwtToken.trim().isEmpty() || extractExpiration(jwtToken).isBefore(Instant.now())) {
+        if (jwtToken == null || jwtToken.trim().isEmpty()) {
             return false;
         }
 
         try {
-            extractUserId(jwtToken);
+            if (extractExpiration(jwtToken).isBefore(Instant.now())) {
+                return false;
+            }
+
+            extractClaims(jwtToken);
             return true;
         } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
-    }
-
-    /**
-     * Generates a new JWT token based on user ID.
-     *
-     * @param userId user ID.
-     * @param expiration expiration of the new JWT token.
-     *
-     * @return JWT token.
-     */
-    private String generateJwtToken(UUID userId, Instant expiration) {
-        return Jwts.builder()
-                .id(UUID.randomUUID().toString())
-                .subject(userId.toString())
-                .issuedAt(Date.from(Instant.now()))
-                .expiration(Date.from(expiration))
-                .signWith(key)
-                .compact();
-    }
-
-    private String generateAccessToken(User user) {
-        Instant expiration = Instant.now().plus(ACCESS_TOKEN_DURATION);
-        return generateJwtToken(user.getId(), expiration);
     }
 
     /**
@@ -161,6 +174,10 @@ public class JwtService {
     public String refreshAccessToken(String refreshToken) {
         if (!isValid(refreshToken)) {
             throw new IllegalArgumentException("Invalid JWT signature");
+        }
+
+        if (!"REFRESH".equals(extractType(refreshToken))) {
+            throw new IllegalArgumentException("Not refresh token was provided for refreshing");
         }
 
         JwtRefreshToken dbToken = jwtRefreshTokenRepository.findByToken(refreshToken).orElseThrow(
@@ -180,6 +197,6 @@ public class JwtService {
 
     @Transactional
     public void deleteRefreshToken(String refreshToken) {
-        jwtRefreshTokenRepository.findByToken(refreshToken).ifPresent(jwtRefreshTokenRepository::delete);
+        jwtRefreshTokenRepository.findById(UUID.fromString(extractId(refreshToken))).ifPresent(jwtRefreshTokenRepository::delete);
     }
 }

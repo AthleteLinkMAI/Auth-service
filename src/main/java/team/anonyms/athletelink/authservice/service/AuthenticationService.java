@@ -56,11 +56,14 @@ public class AuthenticationService {
     /**
      * Logging out current device from the system.
      * 
-     * @param refreshToken token for deletion.
+     * @param refreshToken refreshToken for deletion.
+     * @param accessToken accessToken for including in denylist.
      */
-    public void logout(String refreshToken) {
+    public void logout(String refreshToken, String accessToken) {
         jwtService.deleteRefreshToken(refreshToken);
 
-        stringRedisTemplate.opsForValue().set(JWT_DENYLIST_KEY_PREFIX + refreshToken, "", 5, TimeUnit.MINUTES);
+        stringRedisTemplate.opsForValue().set(
+                JWT_DENYLIST_KEY_PREFIX + jwtService.extractId(accessToken), "", 5, TimeUnit.MINUTES
+        );
     }
 }

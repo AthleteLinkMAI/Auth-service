@@ -27,7 +27,8 @@ public class SecurityConfiguration {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
-                        "/auth/**",
+                        "/auth/login",
+                        "/auth/refresh",
                         "/user/register",
                         "/verify/forgot-password",
                         "/verify/password-reset"

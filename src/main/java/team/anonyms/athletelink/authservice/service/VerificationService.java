@@ -7,7 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import team.anonyms.athletelink.authservice.dto.service.verification.EmailVerificationServiceDto;
 import team.anonyms.athletelink.authservice.dto.service.verification.PasswordResetRequestServiceDto;
 import team.anonyms.athletelink.authservice.entity.User;
-import team.anonyms.athletelink.authservice.entity.code.EmailVerificationCode;
+import team.anonyms.athletelink.authservice.entity.code.EmailCode;
 import team.anonyms.athletelink.authservice.entity.code.PasswordResetCode;
 import team.anonyms.athletelink.authservice.exception.CodeAlreadyExistsException;
 import team.anonyms.athletelink.authservice.repository.EmailVerificationCodeRepository;
@@ -49,14 +49,14 @@ public class VerificationService {
             throw new CodeAlreadyExistsException("Email verification code already exists; userId=" + userId);
         }
 
-        EmailVerificationCode emailVerificationCode = EmailVerificationCode.builder()
+        EmailCode emailCode = EmailCode.builder()
                 .code(generateRawCode())
                 .expiration(Instant.now().plus(CODE_EXPIRATION))
                 .user(user)
                 .build();
 
-        emailVerificationCodeRepository.save(emailVerificationCode);
-        sendToKafka(emailVerificationCode);
+        emailVerificationCodeRepository.save(emailCode);
+        sendToKafka(emailCode);
     }
 
     @Transactional
@@ -64,21 +64,21 @@ public class VerificationService {
         User user = userRepository.findById(emailVerificationServiceDto.userId())
                 .orElseThrow(() -> new EntityNotFoundException("User not found; userId=" + emailVerificationServiceDto.userId()));
 
-        EmailVerificationCode emailVerificationCode = emailVerificationCodeRepository.findByUserId(emailVerificationServiceDto.userId())
+        EmailCode emailCode = emailVerificationCodeRepository.findByUserId(emailVerificationServiceDto.userId())
                 .orElseThrow(() -> new EntityNotFoundException("No verification code found for user; userId=" + emailVerificationServiceDto.userId()));
 
-        if (emailVerificationCode.getExpiration().isBefore(Instant.now())) {
-            emailVerificationCodeRepository.delete(emailVerificationCode);
+        if (emailCode.getExpiration().isBefore(Instant.now())) {
+            emailVerificationCodeRepository.delete(emailCode);
             throw new IllegalArgumentException("Verification code has expired");
         }
 
-        if (!emailVerificationCode.getCode().equals(emailVerificationServiceDto.emailVerificationCode())) {
+        if (!emailCode.getCode().equals(emailVerificationServiceDto.emailVerificationCode())) {
             throw new IllegalArgumentException("Invalid verification code");
         }
 
         user.setIsVerified(true);
         userRepository.save(user);
-        emailVerificationCodeRepository.delete(emailVerificationCode);
+        emailVerificationCodeRepository.delete(emailCode);
     }
 
     @Transactional
