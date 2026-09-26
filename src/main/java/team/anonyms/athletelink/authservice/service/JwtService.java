@@ -20,7 +20,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -74,24 +73,7 @@ public class JwtService {
         return generateJwtToken(user.getId(), expiration, "REFRESH");
     }
 
-    /**
-     * Looks for existed JWT refresh tokens in database and checks if any of tokens matches to the current device.
-     * If JWT refresh token has already been existed this method updated the expiry date, if it hasn't been existed
-     * this method add new one to database.
-     */
-    @Transactional
     public String createOrUpdateRefreshToken(User user, String userAgent, String ipAddress) {
-        List<JwtRefreshToken> jwtRefreshTokens = jwtRefreshTokenRepository.findAllByUserId(user.getId());
-
-        for (JwtRefreshToken jwtRefreshToken : jwtRefreshTokens) {
-            if (jwtRefreshToken.getUserAgent().equals(userAgent)) {
-                jwtRefreshToken.setExpiration(Instant.now().plus(REFRESH_TOKEN_DURATION));
-                jwtRefreshToken.setLastUsed(Instant.now());
-                jwtRefreshTokenRepository.save(jwtRefreshToken);
-                return jwtRefreshToken.getToken();
-            }
-        }
-
         Instant now = Instant.now();
         Instant expiration = now.plus(REFRESH_TOKEN_DURATION);
         String refreshToken = generateRefreshToken(user);
