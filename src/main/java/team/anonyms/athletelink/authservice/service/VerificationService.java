@@ -21,7 +21,6 @@ import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -64,7 +63,8 @@ public class VerificationService {
         emailVerificationCodeRepository.save(emailCode);
         kafkaProducerService.sendNotificationMessage(
                 new NotificationMessage(
-                        Map.of(NotificationType.EMAIL, user.getEmail()),
+                        NotificationType.EMAIL,
+                        user.getEmail(),
                         "Email verification code",
                         "Your email verification code is:\n" + emailCode.getCode()
                 ),
@@ -112,7 +112,8 @@ public class VerificationService {
         passwordResetCodeRepository.save(passwordResetCode);
         kafkaProducerService.sendNotificationMessage(
                 new NotificationMessage(
-                        Map.of(NotificationType.EMAIL, user.getEmail()),
+                        NotificationType.EMAIL,
+                        user.getEmail(),
                         "Password reset code",
                         "Your password reset code is:\n" + passwordResetCode.getCode()
                 ),
@@ -159,7 +160,8 @@ public class VerificationService {
 
         kafkaProducerService.sendNotificationMessage(
                 new NotificationMessage(
-                        Map.of(NotificationType.EMAIL, user.getEmail()),
+                        NotificationType.EMAIL,
+                        user.getEmail(),
                         "New password",
                         "Your new password is:\n" + newPassword
                 ),
