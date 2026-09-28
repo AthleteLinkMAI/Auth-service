@@ -70,4 +70,12 @@ public class UserController {
         userService.changeEmail(userId, newEmail);
         return ResponseEntity.ok().build();
     }
+
+    @DeleteMapping("/delete")
+    public ResponseEntity<Void> deleteUser(@AuthenticationPrincipal UUID userId) {
+        log.info("Called delete; userId={}", userId);
+
+        userService.deleteUser(userId);
+        return ResponseEntity.noContent().build();
+    }
 }

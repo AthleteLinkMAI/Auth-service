@@ -1,10 +1,12 @@
 package team.anonyms.athletelink.authservice.service;
 
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import team.anonyms.athletelink.authservice.dto.service.kafka.UserChange;
+import team.anonyms.athletelink.authservice.dto.service.kafka.enums.UserChangeType;
 import team.anonyms.athletelink.authservice.dto.service.user.ChangePasswordRequestServiceDto;
 import team.anonyms.athletelink.authservice.dto.service.user.RegisterRequestServiceDto;
 import team.anonyms.athletelink.authservice.dto.service.user.UserUpdateServiceDto;
@@ -18,9 +20,10 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class UserService {
-    private final BCryptPasswordEncoder passwordEncoder;
-
+    private final KafkaProducerService kafkaProducerService;
     private final UserRepository userRepository;
+
+    private final BCryptPasswordEncoder passwordEncoder;
 
     /**
      * Registers new user in the system.
@@ -42,7 +45,10 @@ public class UserService {
                 .isVerified(false)
                 .build();
 
-        userRepository.save(userToRegister);
+        User userRegistered = userRepository.save(userToRegister);
+        kafkaProducerService.sendUserChange(
+                new UserChange(UserChangeType.CREATE, userRegistered.getId())
+        );
     }
 
     @Transactional
@@ -65,7 +71,7 @@ public class UserService {
             throw new IncorrectPasswordException("Passwords don't match");
         }
 
-        userToChangePassword.setPassword(changePasswordRequestServiceDto.newPassword());
+        userToChangePassword.setPassword(passwordEncoder.encode(changePasswordRequestServiceDto.newPassword()));
         userRepository.save(userToChangePassword);
     }
 
@@ -77,5 +83,17 @@ public class UserService {
         userToChangeEmail.setEmail(newEmail);
         userToChangeEmail.setIsVerified(Boolean.FALSE);
         userRepository.save(userToChangeEmail);
+    }
+
+    public void deleteUser(UUID userId) {
+        if (!userRepository.existsById(userId)) {
+            return;
+        }
+
+        userRepository.deleteById(userId);
+
+        kafkaProducerService.sendUserChange(
+                new UserChange(UserChangeType.DELETE, userId)
+        );
     }
 }
