@@ -3,6 +3,7 @@ package team.anonyms.athletelink.authservice.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
@@ -31,6 +32,6 @@ public class User {
     @NotBlank
     private String password;
 
-    @NotBlank
+    @NotNull
     private Boolean isVerified;
 }

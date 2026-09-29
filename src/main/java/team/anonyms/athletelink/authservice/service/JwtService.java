@@ -1,7 +1,6 @@
 package team.anonyms.athletelink.authservice.service;
 
 import io.jsonwebtoken.*;
-import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityNotFoundException;
@@ -45,7 +44,11 @@ public class JwtService {
 
     @PostConstruct
     private void init() {
-        this.key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret));
+        byte[] secretBytes = secret.getBytes(StandardCharsets.UTF_8);
+        if (secretBytes.length < 64) {
+            throw new IllegalArgumentException("JWT_SECRET must be at least 64 UTF-8 bytes for HS512");
+        }
+        this.key = Keys.hmacShaKeyFor(secretBytes);
     }
 
     /**
@@ -63,7 +66,7 @@ public class JwtService {
                 .issuedAt(Date.from(Instant.now()))
                 .expiration(Date.from(expiration))
                 .claim("type", jwtTokenType)
-                .signWith(key)
+                .signWith(key, Jwts.SIG.HS512)
                 .compact();
     }
 

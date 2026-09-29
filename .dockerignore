@@ -1,5 +1,8 @@
 .claude/
+.git/
 .idea/
+.env
+.env.*
 target/
 src/test/
 Dockerfile
