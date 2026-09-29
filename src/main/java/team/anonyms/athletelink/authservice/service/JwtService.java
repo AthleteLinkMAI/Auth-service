@@ -37,11 +37,11 @@ public class JwtService {
 
     private final JwtRefreshTokenRepository jwtRefreshTokenRepository;
 
-    // Secret key for validating or creating JWT tokens
+    // Secret key for creating JWT tokens
     private SecretKey key;
 
     @Value("${jwt.secret}")
-    private String secret; // TODO: add JWT secret to application.yaml
+    private String secret;
 
     @PostConstruct
     private void init() {
