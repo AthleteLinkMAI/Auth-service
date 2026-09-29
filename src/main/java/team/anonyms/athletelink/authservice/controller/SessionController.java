@@ -28,7 +28,7 @@ public class SessionController {
     }
 
     @DeleteMapping("/terminate/{userId}")
-    public ResponseEntity<Void> terminateSession(@RequestBody UUID sessionId, UUID userId) {
+    public ResponseEntity<Void> terminateSession(@RequestBody UUID sessionId, @PathVariable UUID userId) {
         log.info("Called terminate-session; sessionId={}, userId={}", sessionId, userId);
 
         TerminateSessionRequestControllerDto controllerDto = new TerminateSessionRequestControllerDto(sessionId, userId);
@@ -38,7 +38,7 @@ public class SessionController {
     }
 
     @DeleteMapping("/terminate-all/{userId}")
-    public ResponseEntity<Void> terminateAllSessions(UUID userId) {
+    public ResponseEntity<Void> terminateAllSessions(@PathVariable UUID userId) {
         log.info("Called terminate-all-sessions; userId={}", userId);
 
         sessionService.terminateAllSessions(userId);
