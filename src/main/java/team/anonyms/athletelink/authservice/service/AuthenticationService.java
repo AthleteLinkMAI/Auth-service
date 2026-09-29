@@ -14,8 +14,6 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-import static team.anonyms.athletelink.authservice.security.filters.JwtAuthenticationFilter.JWT_DENYLIST_KEY_PREFIX;
-
 @Service
 @RequiredArgsConstructor
 public class AuthenticationService {
@@ -63,7 +61,7 @@ public class AuthenticationService {
         jwtService.deleteRefreshToken(refreshToken);
 
         stringRedisTemplate.opsForValue().set(
-                JWT_DENYLIST_KEY_PREFIX + jwtService.extractId(accessToken), "", 5, TimeUnit.MINUTES
+                "jwt:denylist:" + jwtService.extractId(accessToken), "", 5, TimeUnit.MINUTES
         );
     }
 }
