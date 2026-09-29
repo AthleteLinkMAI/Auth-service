@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import team.anonyms.athletelink.authservice.dto.controller.user.ChangePasswordRequestControllerDto;
 import team.anonyms.athletelink.authservice.dto.controller.user.RegisterRequestControllerDto;
@@ -35,21 +34,18 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-    @PutMapping("/update-user")
-    public ResponseEntity<Void> updateUser(
-            @RequestBody @Valid UserUpdateControllerDto dto,
-            @AuthenticationPrincipal UUID userId
-    ) {
+    @PutMapping("/update-user/{userId}")
+    public ResponseEntity<Void> updateUser(@RequestBody @Valid UserUpdateControllerDto dto, @PathVariable UUID userId) {
         log.info("Called update; userId={}", userId);
 
         userService.updateUser(userMapper.userUpdateControllerToServiceDto(userId, dto));
         return ResponseEntity.ok().build();
     }
 
-    @PutMapping("/change-password")
+    @PutMapping("/change-password/{userId}")
     public ResponseEntity<Void> changePassword(
             @RequestBody @Valid ChangePasswordRequestControllerDto changePasswordRequestControllerDto,
-            @AuthenticationPrincipal UUID userId
+            @PathVariable UUID userId
     ) {
         log.info("Called change-password");
 
@@ -60,19 +56,16 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
-    @PutMapping("/change-email")
-    public ResponseEntity<Void> changeEmail(
-            @RequestBody @Email String newEmail,
-            @AuthenticationPrincipal UUID userId
-    ) {
+    @PutMapping("/change-email/{userId}")
+    public ResponseEntity<Void> changeEmail(@RequestBody @Email String newEmail, @PathVariable UUID userId) {
         log.info("Called change-email; userId={}, newEmail={}", userId, newEmail);
 
         userService.changeEmail(userId, newEmail);
         return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping("/delete")
-    public ResponseEntity<Void> deleteUser(@AuthenticationPrincipal UUID userId) {
+    @DeleteMapping("/delete/{userId}")
+    public ResponseEntity<Void> deleteUser(@PathVariable UUID userId) {
         log.info("Called delete; userId={}", userId);
 
         userService.deleteUser(userId);

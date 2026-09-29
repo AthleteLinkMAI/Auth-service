@@ -5,11 +5,7 @@ import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import team.anonyms.athletelink.authservice.dto.controller.verification.EmailVerificationControllerDto;
 import team.anonyms.athletelink.authservice.dto.controller.verification.PasswordResetRequestControllerDto;
 import team.anonyms.athletelink.authservice.mapper.VerificationMapper;
@@ -25,18 +21,18 @@ public class VerificationController {
     private final VerificationService verificationService;
     private final VerificationMapper verificationMapper;
 
-    @PostMapping("/send-email-verification-code")
-    public ResponseEntity<Void> sendEmailVerificationCode(@AuthenticationPrincipal UUID userId) {
+    @PostMapping("/send-email-verification-code/{userId}")
+    public ResponseEntity<Void> sendEmailVerificationCode(@PathVariable UUID userId) {
         log.info("Called send-email-code; userId={}", userId);
 
         verificationService.generateAndSendEmailCode(userId);
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/verify-email")
+    @PostMapping("/verify-email/{userId}")
     public ResponseEntity<Boolean> verifyEmail(
             @RequestBody String emailVerificationCode,
-            @AuthenticationPrincipal UUID userId
+            @PathVariable UUID userId
     ) {
         log.info("Called email; userId={}", userId);
 

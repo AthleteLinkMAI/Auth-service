@@ -3,7 +3,6 @@ package team.anonyms.athletelink.authservice.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import team.anonyms.athletelink.authservice.dto.controller.session.SessionControllerDto;
 import team.anonyms.athletelink.authservice.dto.controller.session.TerminateSessionRequestControllerDto;
@@ -21,15 +20,15 @@ public class SessionController {
     private final SessionService sessionService;
     private final SessionMapper sessionMapper;
 
-    @GetMapping("/get-all")
-    public ResponseEntity<List<SessionControllerDto>> getSessions(@AuthenticationPrincipal UUID userId) {
+    @GetMapping("/get-all/{userId}")
+    public ResponseEntity<List<SessionControllerDto>> getSessions(@PathVariable UUID userId) {
         log.info("Called get-sessions; userId={}", userId);
 
         return ResponseEntity.ok(sessionService.getSessions(userId));
     }
 
-    @DeleteMapping("/terminate")
-    public ResponseEntity<Void> terminateSession(@RequestBody UUID sessionId, @AuthenticationPrincipal UUID userId) {
+    @DeleteMapping("/terminate/{userId}")
+    public ResponseEntity<Void> terminateSession(@RequestBody UUID sessionId, UUID userId) {
         log.info("Called terminate-session; sessionId={}, userId={}", sessionId, userId);
 
         TerminateSessionRequestControllerDto controllerDto = new TerminateSessionRequestControllerDto(sessionId, userId);
@@ -38,8 +37,8 @@ public class SessionController {
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/terminate-all")
-    public ResponseEntity<Void> terminateAllSessions(@AuthenticationPrincipal UUID userId) {
+    @DeleteMapping("/terminate-all/{userId}")
+    public ResponseEntity<Void> terminateAllSessions(UUID userId) {
         log.info("Called terminate-all-sessions; userId={}", userId);
 
         sessionService.terminateAllSessions(userId);
