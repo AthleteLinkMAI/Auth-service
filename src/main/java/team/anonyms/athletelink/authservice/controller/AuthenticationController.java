@@ -63,6 +63,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/refresh")
+    // TODO: add refreshToken rotation
     public ResponseEntity<String> refresh(@CookieValue(name = "refreshToken") String refreshToken) {
         log.info("Called refresh");
 

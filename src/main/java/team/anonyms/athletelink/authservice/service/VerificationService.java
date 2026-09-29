@@ -2,8 +2,11 @@ package team.anonyms.athletelink.authservice.service;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import team.anonyms.athletelink.authservice.dto.service.kafka.NotificationMessage;
+import team.anonyms.athletelink.authservice.dto.service.kafka.enums.NotificationType;
 import team.anonyms.athletelink.authservice.dto.service.verification.EmailVerificationServiceDto;
 import team.anonyms.athletelink.authservice.dto.service.verification.PasswordResetRequestServiceDto;
 import team.anonyms.athletelink.authservice.entity.User;
@@ -23,18 +26,20 @@ import java.util.UUID;
 /**
  * {@code VerificationService} is dedicated to handle all verification related logic.
  */
-// TODO: add connection with Kafka
 @Service
 @RequiredArgsConstructor
 public class VerificationService {
-    // Symbols for generating random codes
-    private static final String SYMBOLS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    private static final String CODE_SYMBOLS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    private static final String PASSWORD_SYMBOLS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*-_";
     private static final SecureRandom RANDOM = new SecureRandom();
     private static final Duration CODE_EXPIRATION = Duration.of(15, ChronoUnit.MINUTES);
 
+    private final KafkaProducerService kafkaProducerService;
     private final EmailVerificationCodeRepository emailVerificationCodeRepository;
     private final PasswordResetCodeRepository passwordResetCodeRepository;
     private final UserRepository userRepository;
+
+    private final BCryptPasswordEncoder passwordEncoder;
 
     @Transactional
     public void generateAndSendEmailCode(UUID userId) {
@@ -56,7 +61,15 @@ public class VerificationService {
                 .build();
 
         emailVerificationCodeRepository.save(emailCode);
-        sendToKafka(emailCode);
+        kafkaProducerService.sendNotificationMessage(
+                new NotificationMessage(
+                        NotificationType.EMAIL,
+                        user.getEmail(),
+                        "Email verification code",
+                        "Your email verification code is:\n" + emailCode.getCode()
+                ),
+                userId
+        );
     }
 
     @Transactional
@@ -97,7 +110,26 @@ public class VerificationService {
                 .build();
 
         passwordResetCodeRepository.save(passwordResetCode);
-        sendToKafka(passwordResetCode);
+        kafkaProducerService.sendNotificationMessage(
+                new NotificationMessage(
+                        NotificationType.EMAIL,
+                        user.getEmail(),
+                        "Password reset code",
+                        "Your password reset code is:\n" + passwordResetCode.getCode()
+                ),
+                user.getId()
+        );
+    }
+
+    private String generatePassword() {
+        final int passwordLength = 16;
+
+        StringBuilder password = new StringBuilder(passwordLength);
+        for (int i = 0; i < passwordLength; i++) {
+            password.append(PASSWORD_SYMBOLS.charAt(RANDOM.nextInt(PASSWORD_SYMBOLS.length())));
+        }
+
+        return password.toString();
     }
 
     @Transactional
@@ -120,21 +152,31 @@ public class VerificationService {
         }
 
         passwordResetCodeRepository.delete(passwordResetCode);
-        // Notification service will generate new password and send it to a user's email
-        sendToKafka("Generate new password for email=" + passwordResetRequestServiceDto.email());
+
+        String newPassword = generatePassword();
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        kafkaProducerService.sendNotificationMessage(
+                new NotificationMessage(
+                        NotificationType.EMAIL,
+                        user.getEmail(),
+                        "New password",
+                        "Your new password is:\n" + newPassword
+                ),
+                user.getId()
+        );
     }
 
     private String generateRawCode() {
-        StringBuilder code = new StringBuilder(6);
-        for (int i = 0; i < 6; i++) {
-            code.append(SYMBOLS.charAt(RANDOM.nextInt(SYMBOLS.length())));
+        final int codeLength = 6;
+
+        StringBuilder code = new StringBuilder(codeLength);
+        for (int i = 0; i < codeLength; i++) {
+            code.append(CODE_SYMBOLS.charAt(RANDOM.nextInt(CODE_SYMBOLS.length())));
         }
 
         return code.toString();
-    }
-
-    // Plug before adding connection to Kafka
-    private void sendToKafka(Object object) {
-
     }
 }

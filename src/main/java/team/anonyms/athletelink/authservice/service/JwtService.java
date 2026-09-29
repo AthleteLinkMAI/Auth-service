@@ -16,10 +16,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.HexFormat;
 import java.util.UUID;
 
 /**
@@ -80,7 +84,7 @@ public class JwtService {
 
         JwtRefreshToken jwtRefreshToken = JwtRefreshToken.builder()
                 .jti(UUID.fromString(extractId(refreshToken)))
-                .token(refreshToken)
+                .token(hash(refreshToken))
                 .expiration(expiration)
                 .lastUsed(now)
                 .userAgent(userAgent)
@@ -162,7 +166,7 @@ public class JwtService {
             throw new IllegalArgumentException("Not refresh token was provided for refreshing");
         }
 
-        JwtRefreshToken dbToken = jwtRefreshTokenRepository.findByToken(refreshToken).orElseThrow(
+        JwtRefreshToken dbToken = jwtRefreshTokenRepository.findByToken(hash(refreshToken)).orElseThrow(
                 () -> new EntityNotFoundException("Refresh token not found")
         );
 
@@ -180,5 +184,14 @@ public class JwtService {
     @Transactional
     public void deleteRefreshToken(String refreshToken) {
         jwtRefreshTokenRepository.findById(UUID.fromString(extractId(refreshToken))).ifPresent(jwtRefreshTokenRepository::delete);
+    }
+
+    public String hash(String token) {
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-512").digest(token.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(digest);
+        } catch(NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-512 is not available", e);
+        }
     }
 }

@@ -1,9 +1,9 @@
 package team.anonyms.athletelink.authservice.service;
 
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import team.anonyms.athletelink.authservice.dto.controller.session.SessionControllerDto;
 import team.anonyms.athletelink.authservice.dto.service.session.SessionServiceDto;
 import team.anonyms.athletelink.authservice.dto.service.session.TerminateSessionRequestServiceDto;
