@@ -26,6 +26,21 @@ public class AuthenticationController {
     private final JwtService jwtService;
     private final AuthorisationMapper authorisationMapper;
 
+    /**
+     * Creates new cookie with {@code jwtToken}.
+     *
+     * @param jwtToken JWT token.
+     */
+    public static ResponseCookie createJwtRefreshTokenCookie(String jwtToken) {
+        return ResponseCookie.from("jwtToken", jwtToken)
+                .path("/")
+                .maxAge(JwtService.REFRESH_TOKEN_DURATION)
+                .httpOnly(true)
+                .secure(false)
+                .sameSite("Strict")
+                .build();
+    }
+
     @PostMapping("/login")
     public ResponseEntity<LoginResultControllerDto> login(
             @RequestBody CredentialsControllerDto credentialsControllerDto,
@@ -49,16 +64,8 @@ public class AuthenticationController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", loginResultServiceDto.refreshToken())
-                .httpOnly(true)
-                .secure(false) // true in prod (when we will implement HTTPS)
-                .path("/")
-                .maxAge(30 * 24 * 60 * 60)
-                .sameSite("Lax")
-                .build();
-
         return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                .header(HttpHeaders.SET_COOKIE, createJwtRefreshTokenCookie(loginResultServiceDto.refreshToken()).toString())
                 .body(authorisationMapper.loginResultServiceToControllerDto(loginResultServiceDto));
     }
 
