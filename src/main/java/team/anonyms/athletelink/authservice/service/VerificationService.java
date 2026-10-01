@@ -12,7 +12,7 @@ import team.anonyms.athletelink.authservice.dto.service.verification.PasswordRes
 import team.anonyms.athletelink.authservice.entity.User;
 import team.anonyms.athletelink.authservice.entity.code.EmailCode;
 import team.anonyms.athletelink.authservice.entity.code.PasswordResetCode;
-import team.anonyms.athletelink.authservice.exception.CodeAlreadyExistsException;
+import team.anonyms.athletelink.authservice.exception.VerificationCodeAlreadyExistsException;
 import team.anonyms.athletelink.authservice.repository.EmailVerificationCodeRepository;
 import team.anonyms.athletelink.authservice.repository.PasswordResetCodeRepository;
 import team.anonyms.athletelink.authservice.repository.UserRepository;
@@ -51,7 +51,7 @@ public class VerificationService {
         }
 
         if (emailVerificationCodeRepository.findByUserId(userId).isPresent()) {
-            throw new CodeAlreadyExistsException("Email verification code already exists; userId=" + userId);
+            throw new VerificationCodeAlreadyExistsException("Email verification code already exists; userId=" + userId);
         }
 
         EmailCode emailCode = EmailCode.builder()
@@ -100,7 +100,7 @@ public class VerificationService {
                 .orElseThrow(() -> new EntityNotFoundException("User not found; email=" + email));
 
         if (passwordResetCodeRepository.findByUserId(user.getId()).isPresent()) {
-            throw new CodeAlreadyExistsException("Password reset code already exists; userId=" + user.getId());
+            throw new VerificationCodeAlreadyExistsException("Password reset code already exists; userId=" + user.getId());
         }
 
         PasswordResetCode passwordResetCode = PasswordResetCode.builder()

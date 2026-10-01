@@ -8,7 +8,8 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import team.anonyms.athletelink.authservice.exception.CodeAlreadyExistsException;
+import team.anonyms.athletelink.authservice.exception.EmailAlreadyExistsException;
+import team.anonyms.athletelink.authservice.exception.VerificationCodeAlreadyExistsException;
 import team.anonyms.athletelink.authservice.exception.IncorrectPasswordException;
 import team.anonyms.athletelink.authservice.exception.InsecureDirectObjectReferenceException;
 
@@ -20,6 +21,9 @@ import java.util.Map;
  */
 @RestControllerAdvice
 @Slf4j
+/* TODO: fix return value in exceptions. Add necessary return content according to https://datatracker.ietf.org/doc/html/rfc91107
+    Also make the error message explicit and understandable for a user.
+ */
 @SuppressWarnings(value = {"unused"})
 public class GlobalExceptionHandler {
     @ExceptionHandler(exception = IllegalArgumentException.class)
@@ -54,8 +58,14 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
-    @ExceptionHandler(exception = CodeAlreadyExistsException.class)
-    public ResponseEntity<Void> handleCodeAlreadyExistsException(CodeAlreadyExistsException e) {
+    @ExceptionHandler(exception = EmailAlreadyExistsException.class)
+    public ResponseEntity<Void> handleEmailAlreadyExistsException(EmailAlreadyExistsException e) {
+        log.error(e.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).build();
+    }
+
+    @ExceptionHandler(exception = VerificationCodeAlreadyExistsException.class)
+    public ResponseEntity<Void> handleCodeAlreadyExistsException(VerificationCodeAlreadyExistsException e) {
         log.error(e.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT).build();
     }
