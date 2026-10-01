@@ -80,7 +80,7 @@ public class AuthenticationController {
     @DeleteMapping("/logout")
     public ResponseEntity<Void> logout(
             @NonNull HttpServletRequest request,
-            @CookieValue(name = "refreshToken", required = false) String refreshToken
+            @CookieValue(name = "jwtRefreshToken", required = false) String refreshToken
     ) {
         log.info("Called logout");
 
