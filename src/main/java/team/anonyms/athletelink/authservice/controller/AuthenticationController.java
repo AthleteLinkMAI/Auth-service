@@ -5,8 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import team.anonyms.athletelink.authservice.dto.controller.auth.CredentialsControllerDto;
-import team.anonyms.athletelink.authservice.dto.controller.auth.LoginResultControllerDto;
-import team.anonyms.athletelink.authservice.dto.service.auth.LoginResultServiceDto;
+import team.anonyms.athletelink.authservice.dto.service.auth.LoginResultDto;
 import team.anonyms.athletelink.authservice.mapper.AuthorisationMapper;
 import team.anonyms.athletelink.authservice.service.AuthenticationService;
 import team.anonyms.athletelink.authservice.service.JwtService;
@@ -42,7 +41,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResultControllerDto> login(
+    public ResponseEntity<Void> login(
             @RequestBody CredentialsControllerDto credentialsControllerDto,
             HttpServletRequest request
     ) {
@@ -52,7 +51,7 @@ public class AuthenticationController {
             return ResponseEntity.badRequest().build();
         }
 
-        LoginResultServiceDto loginResultServiceDto = authenticationService.login(
+        LoginResultDto loginResultServiceDto = authenticationService.login(
                 authorisationMapper.credentialsControllerToServiceDto(
                         credentialsControllerDto,
                         request.getHeader("User-Agent"),
@@ -64,9 +63,10 @@ public class AuthenticationController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        return ResponseEntity.ok()
+        return ResponseEntity
+                .noContent()
                 .header(HttpHeaders.SET_COOKIE, createJwtRefreshTokenCookie(loginResultServiceDto.refreshToken()).toString())
-                .body(authorisationMapper.loginResultServiceToControllerDto(loginResultServiceDto));
+                .build();
     }
 
     @PostMapping("/refresh")

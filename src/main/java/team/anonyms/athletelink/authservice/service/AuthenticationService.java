@@ -1,9 +1,10 @@
 package team.anonyms.athletelink.authservice.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import team.anonyms.athletelink.authservice.dto.service.auth.CredentialsServiceDto;
-import team.anonyms.athletelink.authservice.dto.service.auth.LoginResultServiceDto;
+import team.anonyms.athletelink.authservice.dto.service.auth.LoginResultDto;
 import team.anonyms.athletelink.authservice.entity.User;
 import team.anonyms.athletelink.authservice.repository.UserRepository;
 
@@ -16,6 +17,7 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthenticationService {
     private final JwtService jwtService;
     private final UserRepository userRepository;
@@ -27,13 +29,13 @@ public class AuthenticationService {
      * Login a user into system.
      *
      * @param credentialsServiceDto a user's credentials.
-     * @return {@link LoginResultServiceDto}.
+     * @return {@link LoginResultDto}.
      */
-    public LoginResultServiceDto login(@NonNull CredentialsServiceDto credentialsServiceDto) {
+    public LoginResultDto login(@NonNull CredentialsServiceDto credentialsServiceDto) {
         Optional<User> userOptional = userRepository.findByEmail(credentialsServiceDto.email());
 
         if (userOptional.isEmpty() || !passwordEncoder.matches(credentialsServiceDto.password(), userOptional.get().getPassword())) {
-            return new LoginResultServiceDto(false, null, null, null);
+            return new LoginResultDto(false, null);
         }
 
         User user = userOptional.get();
@@ -43,12 +45,7 @@ public class AuthenticationService {
                 credentialsServiceDto.userIpAddress()
         );
 
-        return new LoginResultServiceDto(
-                true,
-                user.getIsVerified(),
-                user.getId(),
-                refreshToken
-        );
+        return new LoginResultDto(true, refreshToken);
     }
 
     /**
@@ -60,8 +57,12 @@ public class AuthenticationService {
     public void logout(String refreshToken, String accessToken) {
         jwtService.deleteRefreshToken(refreshToken);
 
+        log.info("Putting access token in denylist");
+
         stringRedisTemplate.opsForValue().set(
                 "jwt:denylist:" + jwtService.extractId(accessToken), "", 5, TimeUnit.MINUTES
         );
+
+        log.info("Access token was put");
     }
 }
