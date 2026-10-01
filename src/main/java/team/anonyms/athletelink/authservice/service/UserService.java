@@ -9,6 +9,7 @@ import team.anonyms.athletelink.authservice.dto.service.kafka.UserChange;
 import team.anonyms.athletelink.authservice.dto.service.kafka.enums.UserChangeType;
 import team.anonyms.athletelink.authservice.dto.service.user.ChangePasswordRequestServiceDto;
 import team.anonyms.athletelink.authservice.dto.service.user.RegisterRequestServiceDto;
+import team.anonyms.athletelink.authservice.dto.service.user.UserServiceDto;
 import team.anonyms.athletelink.authservice.dto.service.user.UserUpdateServiceDto;
 import team.anonyms.athletelink.authservice.entity.User;
 import team.anonyms.athletelink.authservice.exception.EmailAlreadyExistsException;
@@ -24,6 +25,18 @@ public class UserService {
     private final UserRepository userRepository;
 
     private final BCryptPasswordEncoder passwordEncoder;
+
+    public UserServiceDto me(UUID userId) {
+        User user = userRepository.findById(userId).orElseThrow(
+                () -> new EntityNotFoundException("User was not found; id=" + userId)
+        );
+
+        return new UserServiceDto(
+                user.getUsername(),
+                user.getEmail(),
+                user.getIsVerified()
+        );
+    }
 
     /**
      * Registers new user in the system.

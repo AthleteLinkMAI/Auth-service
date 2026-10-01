@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import team.anonyms.athletelink.authservice.dto.controller.user.ChangePasswordRequestControllerDto;
 import team.anonyms.athletelink.authservice.dto.controller.user.RegisterRequestControllerDto;
+import team.anonyms.athletelink.authservice.dto.controller.user.UserControllerDto;
 import team.anonyms.athletelink.authservice.dto.controller.user.UserUpdateControllerDto;
 import team.anonyms.athletelink.authservice.mapper.UserMapper;
 import team.anonyms.athletelink.authservice.service.UserService;
@@ -22,6 +23,13 @@ import java.util.UUID;
 public class UserController {
     private final UserService userService;
     private final UserMapper userMapper;
+
+    @GetMapping("/me/{userId}")
+    public ResponseEntity<UserControllerDto> me(@PathVariable UUID userId) {
+        log.info("Called me; userId={}", userId);
+
+        return ResponseEntity.ok(userMapper.userServiceToControllerDto(userService.me(userId)));
+    }
 
     @PostMapping("/register")
     public ResponseEntity<Void> register(
