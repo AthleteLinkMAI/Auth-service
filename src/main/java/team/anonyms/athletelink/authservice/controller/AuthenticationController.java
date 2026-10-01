@@ -32,7 +32,7 @@ public class AuthenticationController {
      * @param jwtToken JWT token.
      */
     public static ResponseCookie createJwtRefreshTokenCookie(String jwtToken) {
-        return ResponseCookie.from("jwtToken", jwtToken)
+        return ResponseCookie.from("jwtRefreshToken", jwtToken)
                 .path("/")
                 .maxAge(JwtService.REFRESH_TOKEN_DURATION)
                 .httpOnly(true)
@@ -71,7 +71,7 @@ public class AuthenticationController {
 
     @PostMapping("/refresh")
     // TODO: add refreshToken rotation
-    public ResponseEntity<String> refresh(@CookieValue(name = "refreshToken") String refreshToken) {
+    public ResponseEntity<String> refresh(@CookieValue(name = "jwtRefreshToken") String refreshToken) {
         log.info("Called refresh");
 
         return ResponseEntity.ok(jwtService.refreshAccessToken(refreshToken));
@@ -88,7 +88,7 @@ public class AuthenticationController {
             authenticationService.logout(refreshToken, request.getHeader("Authorization").substring(7));
         }
 
-        ResponseCookie cookieDeleted = ResponseCookie.from("refreshToken", "")
+        ResponseCookie cookieDeleted = ResponseCookie.from("jwtRefreshToken", "")
                 .httpOnly(true)
                 .secure(false) // true in prod
                 .path("/")
