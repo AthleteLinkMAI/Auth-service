@@ -16,7 +16,9 @@ import java.util.UUID;
 public class UserMapper {
     public UserControllerDto userServiceToControllerDto(UserServiceDto updateServiceDto) {
         return new UserControllerDto(
-
+                updateServiceDto.username(),
+                updateServiceDto.email(),
+                updateServiceDto.isVerified()
         );
     }
 
