@@ -1,10 +1,13 @@
 spring:
   application:
-    name: Authorisation
+    name: auth-service
+  mvc:
+    servlet:
+      path: /api/v1
   datasource:
-    username: ${DB_USER}
-    password: ${DB_PASSWORD}
-    url: ${DB_URL}
+    username: ${POSTGRES_USER:admin}
+    password: ${POSTGRES_PASSWORD:admin}
+    url: ${POSTGRES_DB:jdbc:postgresql://db:5432/postgres}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -16,14 +19,45 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
     show-sql: false
     open-in-view: false
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:secret}
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.UUIDSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
+      acks: all
+      properties:
+        enable.idempotence: true
+        spring.json.add.type.headers: false
   flyway:
     enabled: true
     locations: classpath:database/migrations
+
+app:
+  kafka:
+    topics:
+      user-changes: user.changes
+      notification-messages: notification.messages.requested
+
+jwt:
+  secret: ${JWT_SECRET}
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger
+    operations-sorter: method
+    tags-sorter: alpha
 
 logging:
   level:
     root: INFO
   file:
-    name: /logs/HomeRoutine-authorisation.log
+    name: /logs/athletelink-auth-service.log
   pattern:
     file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"

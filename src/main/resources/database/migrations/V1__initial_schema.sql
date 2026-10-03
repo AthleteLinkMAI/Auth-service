@@ -2,13 +2,13 @@ CREATE TABLE users(
     id       UUID        PRIMARY KEY,
     username VARCHAR(30) NOT NULL,
     email    VARCHAR     NOT NULL UNIQUE,
-    password VARCHAR     NOT NULL
+    password VARCHAR     NOT NULL,
+    is_verified BOOLEAN  NOT NULL DEFAULT FALSE
 );
 
 CREATE TABLE jwt_refresh_tokens(
-    id         UUID      PRIMARY KEY,
-    device_id  UUID      NOT NULL UNIQUE,
-    token      VARCHAR   NOT NULL,
+    jti         UUID      PRIMARY KEY,
+    token      VARCHAR   NOT NULL UNIQUE,
     expiration TIMESTAMP NOT NULL,
     last_used  TIMESTAMP NOT NULL,
     user_agent VARCHAR   NOT NULL,
@@ -16,12 +16,16 @@ CREATE TABLE jwt_refresh_tokens(
     user_id    UUID      NOT NULL REFERENCES users(id)
 );
 
-CREATE TYPE code_type AS ENUM ('EMAIL', 'PASSWORD');
-
-CREATE TABLE verification_codes(
+CREATE TABLE email_verification_codes(
     id         BIGSERIAL  PRIMARY KEY,
     code       VARCHAR(6) NOT NULL,
-    type       code_type  NOT NULL,
+    expiration TIMESTAMP  NOT NULL,
+    user_id    UUID       NOT NULL UNIQUE REFERENCES users(id)
+);
+
+CREATE TABLE password_reset_codes(
+    id         BIGSERIAL  PRIMARY KEY,
+    code       VARCHAR(6) NOT NULL,
     expiration TIMESTAMP  NOT NULL,
     user_id    UUID       NOT NULL UNIQUE REFERENCES users(id)
 );
