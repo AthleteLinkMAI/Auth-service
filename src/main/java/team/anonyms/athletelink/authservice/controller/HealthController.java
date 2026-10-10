@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class HealthController {
     @GetMapping
-    public ResponseEntity<Void> health() {
+    public ResponseEntity<Void> getHealth() {
         log.info("Called /health");
 
         return ResponseEntity.ok().build();

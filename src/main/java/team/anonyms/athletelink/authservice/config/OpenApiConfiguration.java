@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
 @OpenAPIDefinition(
         info = @Info(
                 title = "AtheleteLink Auth Service",
-                version = "0.0.1",
+                version = "1.0.0",
                 description = "Authentication, verification, session and user management",
                 license = @License(name = "MIT License")
         )

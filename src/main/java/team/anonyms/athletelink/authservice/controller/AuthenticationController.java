@@ -1,6 +1,7 @@
 package team.anonyms.athletelink.authservice.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
@@ -26,7 +27,7 @@ public class AuthenticationController {
     private final AuthorisationMapper authorisationMapper;
 
     /**
-     * Creates new cookie with {@code jwtToken}.
+     * Creates new cookie which stores JWT refresh token in itself.
      *
      * @param jwtToken JWT token.
      */
@@ -42,14 +43,10 @@ public class AuthenticationController {
 
     @PostMapping("/login")
     public ResponseEntity<Void> login(
-            @RequestBody CredentialsControllerDto credentialsControllerDto,
+            @RequestBody @Valid CredentialsControllerDto credentialsControllerDto,
             HttpServletRequest request
     ) {
         log.info("Called login; email={}", credentialsControllerDto.email());
-
-        if (credentialsControllerDto.email() == null || credentialsControllerDto.password() == null) {
-            return ResponseEntity.badRequest().build();
-        }
 
         LoginResultDto loginResultServiceDto = authenticationService.login(
                 authorisationMapper.credentialsControllerToServiceDto(
