@@ -17,6 +17,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
+
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
@@ -31,12 +34,12 @@ public class AuthenticationController {
      *
      * @param jwtToken JWT token.
      */
-    public static ResponseCookie createJwtRefreshTokenCookie(String jwtToken) {
+    public static ResponseCookie createJwtRefreshTokenCookie(String jwtToken, Duration duration) {
         return ResponseCookie.from("jwtRefreshToken", jwtToken)
                 .path("/")
-                .maxAge(JwtService.REFRESH_TOKEN_DURATION)
                 .httpOnly(true)
-                .secure(false)
+                .secure(false) // false
+                .maxAge(duration)
                 .sameSite("Strict")
                 .build();
     }
@@ -62,7 +65,13 @@ public class AuthenticationController {
 
         return ResponseEntity
                 .noContent()
-                .header(HttpHeaders.SET_COOKIE, createJwtRefreshTokenCookie(loginResultServiceDto.refreshToken()).toString())
+                .header(
+                        HttpHeaders.SET_COOKIE,
+                        createJwtRefreshTokenCookie(
+                                loginResultServiceDto.refreshToken(),
+                                JwtService.REFRESH_TOKEN_DURATION
+                        ).toString()
+                )
                 .build();
     }
 
@@ -85,14 +94,14 @@ public class AuthenticationController {
             authenticationService.logout(refreshToken, request.getHeader("Authorization").substring(7));
         }
 
-        ResponseCookie cookieDeleted = ResponseCookie.from("jwtRefreshToken", "")
-                .httpOnly(true)
-                .secure(false) // true in prod
-                .path("/")
-                .maxAge(0)
-                .sameSite("Lax")
+        return ResponseEntity.noContent()
+                .header(
+                        HttpHeaders.SET_COOKIE,
+                        createJwtRefreshTokenCookie(
+                                "",
+                                Duration.of(0, ChronoUnit.SECONDS)
+                        ).toString()
+                )
                 .build();
-
-        return ResponseEntity.noContent().header(HttpHeaders.SET_COOKIE, cookieDeleted.toString()).build();
     }
 }
