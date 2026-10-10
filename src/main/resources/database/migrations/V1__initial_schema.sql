@@ -1,13 +1,13 @@
 CREATE TABLE users(
-    id       UUID        PRIMARY KEY,
-    username VARCHAR(30) NOT NULL,
-    email    VARCHAR     NOT NULL UNIQUE,
-    password VARCHAR     NOT NULL,
-    is_verified BOOLEAN  NOT NULL DEFAULT FALSE
+    id          UUID        PRIMARY KEY,
+    username    VARCHAR(30) NOT NULL,
+    email       VARCHAR     NOT NULL UNIQUE,
+    password    VARCHAR     NOT NULL,
+    is_verified BOOLEAN     NOT NULL DEFAULT FALSE
 );
 
 CREATE TABLE jwt_refresh_tokens(
-    jti         UUID      PRIMARY KEY,
+    jti        UUID      PRIMARY KEY,
     token      VARCHAR   NOT NULL UNIQUE,
     expiration TIMESTAMP NOT NULL,
     last_used  TIMESTAMP NOT NULL,
