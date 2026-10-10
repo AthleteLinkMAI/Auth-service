@@ -1,7 +1,6 @@
 package team.anonyms.athletelink.authservice.service;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import team.anonyms.athletelink.authservice.dto.service.auth.CredentialsServiceDto;
 import team.anonyms.athletelink.authservice.dto.service.auth.LoginResultDto;
@@ -17,7 +16,6 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class AuthenticationService {
     private final JwtService jwtService;
     private final UserRepository userRepository;
@@ -57,12 +55,8 @@ public class AuthenticationService {
     public void logout(String refreshToken, String accessToken) {
         jwtService.deleteRefreshToken(refreshToken);
 
-        log.info("Putting access token in denylist");
-
         stringRedisTemplate.opsForValue().set(
                 "jwt:denylist:" + jwtService.extractId(accessToken), "", 5, TimeUnit.MINUTES
         );
-
-        log.info("Access token was put");
     }
 }
