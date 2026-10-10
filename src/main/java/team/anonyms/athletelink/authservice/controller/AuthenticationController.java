@@ -49,7 +49,10 @@ public class AuthenticationController {
             @RequestBody @Valid CredentialsControllerDto credentialsControllerDto,
             HttpServletRequest request
     ) {
-        log.info("Called login; email={}", credentialsControllerDto.email());
+        log.atInfo()
+                .setMessage("API endpoint is called")
+                .addKeyValue("API endpoint", "POST /auth/login")
+                .log();
 
         LoginResultDto loginResultServiceDto = authenticationService.login(
                 authorisationMapper.credentialsControllerToServiceDto(
@@ -78,7 +81,10 @@ public class AuthenticationController {
     @PostMapping("/refresh")
     // TODO: add refreshToken rotation
     public ResponseEntity<String> refresh(@CookieValue(name = "jwtRefreshToken") String refreshToken) {
-        log.info("Called refresh");
+        log.atInfo()
+                .setMessage("API endpoint is called")
+                .addKeyValue("API endpoint", "POST /auth/refresh")
+                .log();
 
         return ResponseEntity.ok(jwtService.refreshAccessToken(refreshToken));
     }
@@ -88,7 +94,10 @@ public class AuthenticationController {
             @NonNull HttpServletRequest request,
             @CookieValue(name = "jwtRefreshToken", required = false) String refreshToken
     ) {
-        log.info("Called logout");
+        log.atInfo()
+                .setMessage("API endpoint is called")
+                .addKeyValue("API endpoint", "DELETE /auth/logout")
+                .log();
 
         if (refreshToken != null) {
             authenticationService.logout(refreshToken, request.getHeader("Authorization").substring(7));

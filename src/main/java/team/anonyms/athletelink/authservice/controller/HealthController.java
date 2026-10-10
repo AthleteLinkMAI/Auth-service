@@ -14,7 +14,10 @@ import org.springframework.web.bind.annotation.RestController;
 public class HealthController {
     @GetMapping
     public ResponseEntity<Void> getHealth() {
-        log.info("Called /health");
+        log.atInfo()
+                .setMessage("API endpoint is called")
+                .addKeyValue("API endpoint", "GET /health")
+                .log();
 
         return ResponseEntity.ok().build();
     }
