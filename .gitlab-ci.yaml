@@ -54,8 +54,8 @@ deploy-job:
   script:
     - ssh -i ~/.ssh/id_ed25519 root@$SSH_REMOTE_HOST "
       cd /root/projects/athlete-link &&
-      docker stop athlete-link-backend-auth-service-1 || true &&
-      docker rm   athlete-link-backend-auth-service-1 || true &&
+      docker stop  athlete-link-backend-auth-service-1 || true &&
+      docker rm    athlete-link-backend-auth-service-1 || true &&
       docker image rm $DOCKERHUB_USER/$DOCKERHUB_REPOSITORY_NAME:latest &&
       docker compose up -d
       "
