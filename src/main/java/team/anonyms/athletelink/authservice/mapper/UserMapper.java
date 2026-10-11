@@ -1,6 +1,6 @@
 package team.anonyms.athletelink.authservice.mapper;
 
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
 import team.anonyms.athletelink.authservice.dto.controller.user.ChangePasswordRequestControllerDto;
 import team.anonyms.athletelink.authservice.dto.controller.user.RegisterRequestControllerDto;
 import team.anonyms.athletelink.authservice.dto.controller.user.UserControllerDto;
@@ -12,44 +12,21 @@ import team.anonyms.athletelink.authservice.dto.service.user.UserUpdateServiceDt
 
 import java.util.UUID;
 
-@Component
-public class UserMapper {
-    public UserControllerDto userServiceToControllerDto(UserServiceDto updateServiceDto) {
-        return new UserControllerDto(
-                updateServiceDto.username(),
-                updateServiceDto.email(),
-                updateServiceDto.isVerified()
-        );
-    }
+@Mapper
+public interface UserMapper {
+    UserControllerDto userServiceToControllerDto(UserServiceDto updateServiceDto);
 
-    public RegisterRequestServiceDto registerControllerToServiceDto(
+    RegisterRequestServiceDto registerControllerToServiceDto(
             RegisterRequestControllerDto registerRequestControllerDto
-    ) {
-        return new RegisterRequestServiceDto(
-                registerRequestControllerDto.username(),
-                registerRequestControllerDto.email(),
-                registerRequestControllerDto.password()
-        );
-    }
+    );
 
-    public UserUpdateServiceDto userUpdateControllerToServiceDto(
+    UserUpdateServiceDto userUpdateControllerToServiceDto(
             UUID userId,
             UserUpdateControllerDto userUpdateControllerDto
-    ) {
-        return new UserUpdateServiceDto(
-                userId,
-                userUpdateControllerDto.username()
-        );
-    }
+    );
 
-    public ChangePasswordRequestServiceDto changePasswordRequestControllerToServiceDto(
+    ChangePasswordRequestServiceDto changePasswordRequestControllerToServiceDto(
             UUID userId,
             ChangePasswordRequestControllerDto changePasswordRequestControllerDto
-    ) {
-        return new ChangePasswordRequestServiceDto(
-                userId,
-                changePasswordRequestControllerDto.oldPassword(),
-                changePasswordRequestControllerDto.newPassword()
-        );
-    }
+    );
 }

@@ -74,7 +74,7 @@ public class VerificationController {
                 .log();
 
         verificationService.validatePasswordResetCodeAndResetPassword(
-                verificationMapper.passwordResetRequestServiceToControllerDto(passwordResetRequestControllerDto)
+                verificationMapper.passwordResetRequestControllerToServiceDto(passwordResetRequestControllerDto)
         );
 
         return ResponseEntity.ok().build();
