@@ -31,6 +31,7 @@ public class UserService {
         );
 
         return new UserServiceDto(
+                userId,
                 user.getUsername(),
                 user.getEmail(),
                 user.getIsVerified()
