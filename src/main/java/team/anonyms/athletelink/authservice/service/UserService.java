@@ -7,22 +7,21 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import team.anonyms.athletelink.authservice.dto.service.kafka.UserChange;
 import team.anonyms.athletelink.authservice.dto.service.kafka.enums.UserChangeType;
-import team.anonyms.athletelink.authservice.dto.service.user.ChangePasswordRequestServiceDto;
-import team.anonyms.athletelink.authservice.dto.service.user.RegisterRequestServiceDto;
-import team.anonyms.athletelink.authservice.dto.service.user.UserServiceDto;
-import team.anonyms.athletelink.authservice.dto.service.user.UserUpdateServiceDto;
+import team.anonyms.athletelink.authservice.dto.service.user.*;
 import team.anonyms.athletelink.authservice.entity.User;
 import team.anonyms.athletelink.authservice.exception.EmailAlreadyExistsException;
 import team.anonyms.athletelink.authservice.exception.IncorrectPasswordException;
+import team.anonyms.athletelink.authservice.mapper.UserMapper;
 import team.anonyms.athletelink.authservice.repository.UserRepository;
 
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 public class UserService {
     private final KafkaProducerService kafkaProducerService;
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
     private final BCryptPasswordEncoder passwordEncoder;
 
@@ -32,10 +31,22 @@ public class UserService {
         );
 
         return new UserServiceDto(
+                userId,
                 user.getUsername(),
                 user.getEmail(),
                 user.getIsVerified()
         );
+    }
+
+    public List<UserPublicServiceDto> getUsersByUserIds(List<UUID> userIds) {
+        List<UserPublicServiceDto> usersToReturn = new LinkedList<>();
+
+        List<User> usersFound = userRepository.findAllById(userIds);
+        for (User user : usersFound) {
+            usersToReturn.add(userMapper.userPublicServiceDtoFromUser(user));
+        }
+
+        return usersToReturn;
     }
 
     /**

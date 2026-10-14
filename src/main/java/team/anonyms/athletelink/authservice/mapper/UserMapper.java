@@ -1,15 +1,12 @@
 package team.anonyms.athletelink.authservice.mapper;
 
+import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
-import team.anonyms.athletelink.authservice.dto.controller.user.ChangePasswordRequestControllerDto;
-import team.anonyms.athletelink.authservice.dto.controller.user.RegisterRequestControllerDto;
-import team.anonyms.athletelink.authservice.dto.controller.user.UserControllerDto;
-import team.anonyms.athletelink.authservice.dto.controller.user.UserUpdateControllerDto;
-import team.anonyms.athletelink.authservice.dto.service.user.ChangePasswordRequestServiceDto;
-import team.anonyms.athletelink.authservice.dto.service.user.RegisterRequestServiceDto;
-import team.anonyms.athletelink.authservice.dto.service.user.UserServiceDto;
-import team.anonyms.athletelink.authservice.dto.service.user.UserUpdateServiceDto;
+import team.anonyms.athletelink.authservice.dto.controller.user.*;
+import team.anonyms.athletelink.authservice.dto.service.user.*;
+import team.anonyms.athletelink.authservice.entity.User;
 
+import java.util.List;
 import java.util.UUID;
 
 @Mapper
@@ -29,4 +26,9 @@ public interface UserMapper {
             UUID userId,
             ChangePasswordRequestControllerDto changePasswordRequestControllerDto
     );
+
+    @BeanMapping(ignoreUnmappedSourceProperties = {"email", "password", "isVerified"})
+    UserPublicServiceDto userPublicServiceDtoFromUser(User user);
+
+    List<UserPublicControllerDto> UserPublicServiceToControllerDtoList(List<UserPublicServiceDto> users);
 }

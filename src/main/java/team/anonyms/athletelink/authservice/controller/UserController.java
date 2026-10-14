@@ -7,13 +7,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import team.anonyms.athletelink.authservice.dto.controller.user.ChangePasswordRequestControllerDto;
-import team.anonyms.athletelink.authservice.dto.controller.user.RegisterRequestControllerDto;
-import team.anonyms.athletelink.authservice.dto.controller.user.UserControllerDto;
-import team.anonyms.athletelink.authservice.dto.controller.user.UserUpdateControllerDto;
+import team.anonyms.athletelink.authservice.dto.controller.user.*;
 import team.anonyms.athletelink.authservice.mapper.UserMapper;
 import team.anonyms.athletelink.authservice.service.UserService;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -33,6 +31,21 @@ public class UserController {
                 .log();
 
         return ResponseEntity.ok(userMapper.userServiceToControllerDto(userService.me(userId)));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<UserPublicControllerDto>> getUsersByUserIds(
+            @RequestParam("userIds" )List<UUID> userIds
+    ) {
+        log.atInfo()
+                .setMessage("API endpoint is called")
+                .addKeyValue("API endpoint", "GET user?userIds")
+                .addKeyValue("userIds", userIds)
+                .log();
+
+        return ResponseEntity.ok(
+                userMapper.UserPublicServiceToControllerDtoList(userService.getUsersByUserIds(userIds))
+        );
     }
 
     @PostMapping("/register")

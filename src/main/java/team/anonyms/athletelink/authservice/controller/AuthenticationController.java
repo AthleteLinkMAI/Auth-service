@@ -38,7 +38,7 @@ public class AuthenticationController {
         return ResponseCookie.from("jwtRefreshToken", jwtToken)
                 .path("/")
                 .httpOnly(true)
-                .secure(false) // false
+                .secure(false) // true in production
                 .maxAge(duration)
                 .sameSite("Strict")
                 .build();
