@@ -10,6 +10,10 @@ public record UserUpdateServiceDto(
 
         @Size(max = 30)
         @NotBlank
-        String username
+        String nickname,
+
+        String username,
+
+        String surname
 ) {
 }

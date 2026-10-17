@@ -4,6 +4,8 @@ import java.util.UUID;
 
 public record UserPublicControllerDto(
         UUID id,
-        String username
+        String nickname,
+        String username,
+        String surname
 ) {
 }
