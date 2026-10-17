@@ -65,7 +65,9 @@ public class UserService {
         }
 
         User userToRegister = User.builder()
-                .nickname(registerRequestServiceDto.username())
+                .nickname(registerRequestServiceDto.nickname())
+                .username(registerRequestServiceDto.username())
+                .surname(registerRequestServiceDto.surname())
                 .email(email)
                 .password(passwordEncoder.encode(registerRequestServiceDto.password()))
                 .isVerified(false)
@@ -82,7 +84,10 @@ public class UserService {
         User userToUpdate = userRepository.findById(userUpdateServiceDto.userId())
                 .orElseThrow(() -> new EntityNotFoundException("User not found; id=" + userUpdateServiceDto.userId()));
 
-        userToUpdate.setNickname(userUpdateServiceDto.username());
+        userToUpdate.setNickname(userUpdateServiceDto.nickname());
+        userToUpdate.setUsername(userUpdateServiceDto.username());
+        userToUpdate.setSurname(userUpdateServiceDto.surname());
+
         userRepository.save(userToUpdate);
     }
 
