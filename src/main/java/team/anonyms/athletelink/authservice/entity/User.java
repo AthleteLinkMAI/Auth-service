@@ -1,12 +1,15 @@
 package team.anonyms.athletelink.authservice.entity;
 
+import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
@@ -25,8 +28,10 @@ public class User {
     @NotBlank
     private String nickname;
 
-    private String username;
+    @Nullable
+    private String name;
 
+    @Nullable
     private String surname;
 
     @Email
@@ -38,4 +43,11 @@ public class User {
 
     @NotNull
     private Boolean isVerified;
+
+    @NotNull
+    private LocalDate birthdate;
+
+    @Setter(AccessLevel.NONE)
+    @CreationTimestamp
+    private LocalDate registrationDate;
 }
