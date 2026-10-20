@@ -1,6 +1,8 @@
 CREATE TABLE users(
     id          UUID        PRIMARY KEY,
-    username    VARCHAR(30) NOT NULL,
+    nickname    VARCHAR(30) NOT NULL UNIQUE,
+    username    VARCHAR,
+    surname     VARCHAR,
     email       VARCHAR     NOT NULL UNIQUE,
     password    VARCHAR     NOT NULL,
     is_verified BOOLEAN     NOT NULL DEFAULT FALSE

@@ -23,7 +23,11 @@ public class User {
 
     @Size(max = 30)
     @NotBlank
+    private String nickname;
+
     private String username;
+
+    private String surname;
 
     @Email
     @NotBlank

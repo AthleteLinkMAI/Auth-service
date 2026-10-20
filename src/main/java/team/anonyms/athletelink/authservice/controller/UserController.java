@@ -35,7 +35,7 @@ public class UserController {
 
     @GetMapping
     public ResponseEntity<List<UserPublicControllerDto>> getUsersByUserIds(
-            @RequestParam("userIds" )List<UUID> userIds
+            @RequestParam("userIds") List<UUID> userIds
     ) {
         log.atInfo()
                 .setMessage("API endpoint is called")
