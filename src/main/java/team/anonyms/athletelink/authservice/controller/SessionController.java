@@ -21,15 +21,24 @@ public class SessionController {
     private final SessionMapper sessionMapper;
 
     @GetMapping("/get-all/{userId}")
-    public ResponseEntity<List<SessionControllerDto>> getSessions(@PathVariable UUID userId) {
-        log.info("Called get-sessions; userId={}", userId);
+    public ResponseEntity<List<SessionControllerDto>> getAllSessions(@PathVariable UUID userId) {
+        log.atInfo()
+                .setMessage("API endpoint is called")
+                .addKeyValue("API endpoint", "GET /session/get-all/{userId}")
+                .addKeyValue("userId", userId)
+                .log();
 
         return ResponseEntity.ok(sessionService.getSessions(userId));
     }
 
     @DeleteMapping("/terminate/{userId}")
     public ResponseEntity<Void> terminateSession(@RequestBody UUID sessionId, @PathVariable UUID userId) {
-        log.info("Called terminate-session; sessionId={}, userId={}", sessionId, userId);
+        log.atInfo()
+                .setMessage("API endpoint is called")
+                .addKeyValue("API endpoint", "DELETE /session/terminate/{userId}")
+                .addKeyValue("userId", userId)
+                .addKeyValue("sessionId", sessionId)
+                .log();
 
         TerminateSessionRequestControllerDto controllerDto = new TerminateSessionRequestControllerDto(sessionId, userId);
         sessionService.terminateSession(sessionMapper.terminateSessionRequestControllerToServiceDto(controllerDto));
@@ -39,7 +48,11 @@ public class SessionController {
 
     @DeleteMapping("/terminate-all/{userId}")
     public ResponseEntity<Void> terminateAllSessions(@PathVariable UUID userId) {
-        log.info("Called terminate-all-sessions; userId={}", userId);
+        log.atInfo()
+                .setMessage("API endpoint is called")
+                .addKeyValue("API endpoint", "DELETE /session/terminate-all/{userId}")
+                .addKeyValue("userId", userId)
+                .log();
 
         sessionService.terminateAllSessions(userId);
         return ResponseEntity.noContent().build();

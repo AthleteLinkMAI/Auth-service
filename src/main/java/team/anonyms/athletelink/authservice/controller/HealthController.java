@@ -13,8 +13,11 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class HealthController {
     @GetMapping
-    public ResponseEntity<Void> health() {
-        log.info("Called /health");
+    public ResponseEntity<Void> getHealth() {
+        log.atInfo()
+                .setMessage("API endpoint is called")
+                .addKeyValue("API endpoint", "GET /health")
+                .log();
 
         return ResponseEntity.ok().build();
     }

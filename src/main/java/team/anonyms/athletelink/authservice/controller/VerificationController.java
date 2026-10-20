@@ -23,7 +23,11 @@ public class VerificationController {
 
     @PostMapping("/send-email-verification-code/{userId}")
     public ResponseEntity<Void> sendEmailVerificationCode(@PathVariable UUID userId) {
-        log.info("Called send-email-code; userId={}", userId);
+        log.atInfo()
+                .setMessage("API endpoint is called")
+                .addKeyValue("API endpoint", "POST /verification/send-email-verification-code/{userId}")
+                .addKeyValue("userId", userId)
+                .log();
 
         verificationService.generateAndSendEmailCode(userId);
         return ResponseEntity.noContent().build();
@@ -34,7 +38,11 @@ public class VerificationController {
             @RequestBody String emailVerificationCode,
             @PathVariable UUID userId
     ) {
-        log.info("Called email; userId={}", userId);
+        log.atInfo()
+                .setMessage("API endpoint is called")
+                .addKeyValue("API endpoint", "POST /verification/verify-email/{userId}")
+                .addKeyValue("userId", userId)
+                .log();
 
         EmailVerificationControllerDto controllerDto = new EmailVerificationControllerDto(
                 emailVerificationCode,
@@ -47,7 +55,10 @@ public class VerificationController {
 
     @PostMapping("/send-password-reset-code")
     public ResponseEntity<Void> sendPasswordResetCode(@RequestBody @Email String email) {
-        log.info("Called forgot-password; email={}", email);
+        log.atInfo()
+                .setMessage("API endpoint is called")
+                .addKeyValue("API endpoint", "POST /verification/send-password-reset-code")
+                .log();
 
         verificationService.generateAndSendPasswordResetCode(email);
         return ResponseEntity.ok().build();
@@ -57,10 +68,13 @@ public class VerificationController {
     public ResponseEntity<Void> resetPassword(
             @RequestBody @Valid PasswordResetRequestControllerDto passwordResetRequestControllerDto
     ) {
-        log.info("Called password-reset; email={}", passwordResetRequestControllerDto.email());
+        log.atInfo()
+                .setMessage("API endpoint is called")
+                .addKeyValue("API endpoint", "POST /verification/verify-password-reset")
+                .log();
 
         verificationService.validatePasswordResetCodeAndResetPassword(
-                verificationMapper.passwordResetRequestServiceToControllerDto(passwordResetRequestControllerDto)
+                verificationMapper.passwordResetRequestControllerToServiceDto(passwordResetRequestControllerDto)
         );
 
         return ResponseEntity.ok().build();

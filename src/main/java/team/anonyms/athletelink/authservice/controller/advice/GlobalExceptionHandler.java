@@ -8,7 +8,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import team.anonyms.athletelink.authservice.exception.EmailAlreadyExistsException;
+import team.anonyms.athletelink.authservice.exception.EntityAlreadyExistsException;
 import team.anonyms.athletelink.authservice.exception.VerificationCodeAlreadyExistsException;
 import team.anonyms.athletelink.authservice.exception.IncorrectPasswordException;
 import team.anonyms.athletelink.authservice.exception.InsecureDirectObjectReferenceException;
@@ -26,15 +26,22 @@ import java.util.Map;
  */
 @SuppressWarnings(value = {"unused"})
 public class GlobalExceptionHandler {
+    private void makeDefaultErrorLog(Exception e) {
+        log.atError()
+                .setMessage(e.getMessage())
+                .setCause(e.getCause())
+                .log();
+    }
+    
     @ExceptionHandler(exception = IllegalArgumentException.class)
     public ResponseEntity<Void> handleIllegalArgumentException(IllegalArgumentException e) {
-        log.error(e.getMessage());
+        makeDefaultErrorLog(e);
         return ResponseEntity.badRequest().build();
     }
 
     @ExceptionHandler(exception = EntityNotFoundException.class)
     public ResponseEntity<Void> handleEntityNotFoundException(EntityNotFoundException e) {
-        log.error(e.getMessage());
+        makeDefaultErrorLog(e);
         return ResponseEntity.notFound().build();
     }
 
@@ -54,25 +61,25 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(exception = IncorrectPasswordException.class)
     public ResponseEntity<Void> handleIncorrectPasswordException(IncorrectPasswordException e) {
-        log.error(e.getMessage());
+        makeDefaultErrorLog(e);
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
-    @ExceptionHandler(exception = EmailAlreadyExistsException.class)
-    public ResponseEntity<Void> handleEmailAlreadyExistsException(EmailAlreadyExistsException e) {
-        log.error(e.getMessage());
+    @ExceptionHandler(exception = EntityAlreadyExistsException.class)
+    public ResponseEntity<Void> handleEmailAlreadyExistsException(EntityAlreadyExistsException e) {
+        makeDefaultErrorLog(e);
         return ResponseEntity.status(HttpStatus.CONFLICT).build();
     }
 
     @ExceptionHandler(exception = VerificationCodeAlreadyExistsException.class)
     public ResponseEntity<Void> handleCodeAlreadyExistsException(VerificationCodeAlreadyExistsException e) {
-        log.error(e.getMessage());
+        makeDefaultErrorLog(e);
         return ResponseEntity.status(HttpStatus.CONFLICT).build();
     }
 
     @ExceptionHandler(exception = InsecureDirectObjectReferenceException.class)
     public ResponseEntity<Void> handleInsecureDirectObjectReferenceException(InsecureDirectObjectReferenceException e) {
-        log.error(e.getMessage());
+        makeDefaultErrorLog(e);
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 }

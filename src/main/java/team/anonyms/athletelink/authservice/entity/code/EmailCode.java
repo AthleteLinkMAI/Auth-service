@@ -9,6 +9,6 @@ import lombok.experimental.SuperBuilder;
 @Setter
 @SuperBuilder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "email_verification_codes")
+@Table(name = "email_codes")
 public class EmailCode extends VerificationCode {
 }

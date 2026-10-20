@@ -15,7 +15,7 @@ public class KafkaConfiguration {
     }
 
     @Bean
-    public NewTopic notificationMessages(KafkaTopicsProperties topics) {
+    public NewTopic notificationMessagesTopic(KafkaTopicsProperties topics) {
         return TopicBuilder.name(topics.notificationMessages()).partitions(3).replicas(1).build();
     }
 }
