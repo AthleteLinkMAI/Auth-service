@@ -8,7 +8,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import team.anonyms.athletelink.authservice.exception.EmailAlreadyExistsException;
+import team.anonyms.athletelink.authservice.exception.EntityAlreadyExistsException;
 import team.anonyms.athletelink.authservice.exception.VerificationCodeAlreadyExistsException;
 import team.anonyms.athletelink.authservice.exception.IncorrectPasswordException;
 import team.anonyms.athletelink.authservice.exception.InsecureDirectObjectReferenceException;
@@ -65,8 +65,8 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
-    @ExceptionHandler(exception = EmailAlreadyExistsException.class)
-    public ResponseEntity<Void> handleEmailAlreadyExistsException(EmailAlreadyExistsException e) {
+    @ExceptionHandler(exception = EntityAlreadyExistsException.class)
+    public ResponseEntity<Void> handleEmailAlreadyExistsException(EntityAlreadyExistsException e) {
         makeDefaultErrorLog(e);
         return ResponseEntity.status(HttpStatus.CONFLICT).build();
     }
