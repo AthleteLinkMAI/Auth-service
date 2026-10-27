@@ -34,6 +34,9 @@ public class User {
     @Nullable
     private String surname;
 
+    @NotNull
+    private LocalDate birthdate;
+
     @Email
     @NotBlank
     private String email;
@@ -43,9 +46,6 @@ public class User {
 
     @NotNull
     private Boolean isVerified;
-
-    @NotNull
-    private LocalDate birthdate;
 
     @Setter(AccessLevel.NONE)
     @CreationTimestamp
