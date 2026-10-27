@@ -11,7 +11,6 @@ import team.anonyms.athletelink.authservice.dto.service.user.*;
 import team.anonyms.athletelink.authservice.entity.User;
 import team.anonyms.athletelink.authservice.exception.EntityAlreadyExistsException;
 import team.anonyms.athletelink.authservice.exception.IncorrectPasswordException;
-import team.anonyms.athletelink.authservice.mapper.UserMapper;
 import team.anonyms.athletelink.authservice.repository.UserRepository;
 
 import java.time.LocalDate;
@@ -23,7 +22,6 @@ import java.util.*;
 public class UserService {
     private final KafkaProducerService kafkaProducerService;
     private final UserRepository userRepository;
-    private final UserMapper userMapper;
 
     private final BCryptPasswordEncoder passwordEncoder;
 
@@ -53,7 +51,16 @@ public class UserService {
 
         List<User> usersFound = userRepository.findAllById(userIds);
         for (User user : usersFound) {
-            usersToReturn.add(userMapper.userPublicServiceDtoFromUser(user));
+            usersToReturn.add(
+                    new UserPublicServiceDto(
+                            user.getId(),
+                            user.getNickname(),
+                            user.getName(),
+                            user.getSurname(),
+                            countUserAge(user),
+                            user.getRegistrationDate()
+                    )
+            );
         }
 
         return usersToReturn;
