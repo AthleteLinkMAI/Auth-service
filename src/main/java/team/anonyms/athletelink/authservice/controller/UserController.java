@@ -7,13 +7,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import team.anonyms.athletelink.authservice.dto.controller.user.ChangePasswordRequestControllerDto;
-import team.anonyms.athletelink.authservice.dto.controller.user.RegisterRequestControllerDto;
-import team.anonyms.athletelink.authservice.dto.controller.user.UserControllerDto;
-import team.anonyms.athletelink.authservice.dto.controller.user.UserUpdateControllerDto;
+import team.anonyms.athletelink.authservice.dto.controller.user.*;
 import team.anonyms.athletelink.authservice.mapper.UserMapper;
 import team.anonyms.athletelink.authservice.service.UserService;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -26,17 +24,38 @@ public class UserController {
 
     @GetMapping("/me/{userId}")
     public ResponseEntity<UserControllerDto> me(@PathVariable UUID userId) {
-        log.info("Called me; userId={}", userId);
+        log.atInfo()
+                .setMessage("API endpoint is called")
+                .addKeyValue("API endpoint", "GET /user/me/{userId}")
+                .addKeyValue("userId", userId)
+                .log();
 
         return ResponseEntity.ok(userMapper.userServiceToControllerDto(userService.me(userId)));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<UserPublicControllerDto>> getUsersByUserIds(
+            @RequestParam("userIds") List<UUID> userIds
+    ) {
+        log.atInfo()
+                .setMessage("API endpoint is called")
+                .addKeyValue("API endpoint", "GET user?userIds")
+                .addKeyValue("userIds", userIds)
+                .log();
+
+        return ResponseEntity.ok(
+                userMapper.UserPublicServiceToControllerDtoList(userService.getUsersByUserIds(userIds))
+        );
     }
 
     @PostMapping("/register")
     public ResponseEntity<Void> register(
             @RequestBody @Valid RegisterRequestControllerDto registerRequestControllerDto
     ) {
-        log.info("Called register; username={}, email={}", registerRequestControllerDto.username(),
-                registerRequestControllerDto.email());
+        log.atInfo()
+                .setMessage("API endpoint is called")
+                .addKeyValue("API endpoint", "POST /user/register")
+                .log();
 
         userService.register(userMapper.registerControllerToServiceDto(registerRequestControllerDto));
         return ResponseEntity.status(HttpStatus.CREATED).build();
@@ -44,7 +63,11 @@ public class UserController {
 
     @PutMapping("/update-user/{userId}")
     public ResponseEntity<Void> updateUser(@RequestBody @Valid UserUpdateControllerDto dto, @PathVariable UUID userId) {
-        log.info("Called update; userId={}", userId);
+        log.atInfo()
+                .setMessage("API endpoint is called")
+                .addKeyValue("API endpoint", "PUT /user/update-user/{userId}")
+                .addKeyValue("userId", userId)
+                .log();
 
         userService.updateUser(userMapper.userUpdateControllerToServiceDto(userId, dto));
         return ResponseEntity.ok().build();
@@ -55,7 +78,11 @@ public class UserController {
             @RequestBody @Valid ChangePasswordRequestControllerDto changePasswordRequestControllerDto,
             @PathVariable UUID userId
     ) {
-        log.info("Called change-password");
+        log.atInfo()
+                .setMessage("API endpoint is called")
+                .addKeyValue("API endpoint", "PUT /user/change-password/{userId}")
+                .addKeyValue("userId", userId)
+                .log();
 
         userService.changePassword(
                 userMapper.changePasswordRequestControllerToServiceDto(userId, changePasswordRequestControllerDto)
@@ -66,7 +93,11 @@ public class UserController {
 
     @PutMapping("/change-email/{userId}")
     public ResponseEntity<Void> changeEmail(@RequestBody @Email String newEmail, @PathVariable UUID userId) {
-        log.info("Called change-email; userId={}, newEmail={}", userId, newEmail);
+        log.atInfo()
+                .setMessage("API endpoint is called")
+                .addKeyValue("API endpoint", "PUT /user/change-email/{userId}")
+                .addKeyValue("userId", userId)
+                .log();
 
         userService.changeEmail(userId, newEmail);
         return ResponseEntity.ok().build();
@@ -74,7 +105,11 @@ public class UserController {
 
     @DeleteMapping("/delete/{userId}")
     public ResponseEntity<Void> deleteUser(@PathVariable UUID userId) {
-        log.info("Called delete; userId={}", userId);
+        log.atInfo()
+                .setMessage("API endpoint is called")
+                .addKeyValue("API endpoint", "DELETE /user/delete/{userId}")
+                .addKeyValue("userId", userId)
+                .log();
 
         userService.deleteUser(userId);
         return ResponseEntity.noContent().build();

@@ -36,7 +36,6 @@ public class JwtService {
 
     private final JwtRefreshTokenRepository jwtRefreshTokenRepository;
 
-    // Secret key for creating JWT tokens
     private SecretKey key;
 
     @Value("${jwt.secret}")
@@ -45,9 +44,11 @@ public class JwtService {
     @PostConstruct
     private void init() {
         byte[] secretBytes = secret.getBytes(StandardCharsets.UTF_8);
+
         if (secretBytes.length < 64) {
             throw new IllegalArgumentException("JWT_SECRET must be at least 64 UTF-8 bytes for HS512");
         }
+
         this.key = Keys.hmacShaKeyFor(secretBytes);
     }
 
@@ -105,17 +106,6 @@ public class JwtService {
 
     public String extractId(String token) {
         return extractClaims(token).getId();
-    }
-
-    /**
-     * Extracts user ID from a JWT token.
-     *
-     * @param token JWT token
-     *
-     * @return user ID
-     */
-    public String extractUserId(String token) {
-        return extractClaims(token).getSubject();
     }
 
     public Instant extractExpiration(String token) {

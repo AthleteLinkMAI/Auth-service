@@ -1,13 +1,17 @@
 CREATE TABLE users(
-    id       UUID        PRIMARY KEY,
-    username VARCHAR(30) NOT NULL,
-    email    VARCHAR     NOT NULL UNIQUE,
-    password VARCHAR     NOT NULL,
-    is_verified BOOLEAN  NOT NULL DEFAULT FALSE
+    id                UUID        PRIMARY KEY,
+    nickname          VARCHAR(30) NOT NULL UNIQUE,
+    name              VARCHAR(30),
+    surname           VARCHAR(30),
+    birthdate         DATE        NOT NULL,
+    email             VARCHAR     NOT NULL UNIQUE,
+    password          VARCHAR     NOT NULL,
+    is_verified       BOOLEAN     NOT NULL DEFAULT FALSE,
+    registration_date DATE        NOT NULL
 );
 
 CREATE TABLE jwt_refresh_tokens(
-    jti         UUID      PRIMARY KEY,
+    jti        UUID      PRIMARY KEY,
     token      VARCHAR   NOT NULL UNIQUE,
     expiration TIMESTAMP NOT NULL,
     last_used  TIMESTAMP NOT NULL,
@@ -16,7 +20,7 @@ CREATE TABLE jwt_refresh_tokens(
     user_id    UUID      NOT NULL REFERENCES users(id)
 );
 
-CREATE TABLE email_verification_codes(
+CREATE TABLE email_codes(
     id         BIGSERIAL  PRIMARY KEY,
     code       VARCHAR(6) NOT NULL,
     expiration TIMESTAMP  NOT NULL,

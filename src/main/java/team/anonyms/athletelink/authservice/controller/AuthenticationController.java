@@ -1,6 +1,7 @@
 package team.anonyms.athletelink.authservice.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
@@ -16,6 +17,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
+
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
@@ -26,30 +30,29 @@ public class AuthenticationController {
     private final AuthorisationMapper authorisationMapper;
 
     /**
-     * Creates new cookie with {@code jwtToken}.
+     * Creates new cookie which stores JWT refresh token in itself.
      *
      * @param jwtToken JWT token.
      */
-    public static ResponseCookie createJwtRefreshTokenCookie(String jwtToken) {
+    public static ResponseCookie createJwtRefreshTokenCookie(String jwtToken, Duration duration) {
         return ResponseCookie.from("jwtRefreshToken", jwtToken)
                 .path("/")
-                .maxAge(JwtService.REFRESH_TOKEN_DURATION)
                 .httpOnly(true)
-                .secure(false)
+                .secure(false) // true in production
+                .maxAge(duration)
                 .sameSite("Strict")
                 .build();
     }
 
     @PostMapping("/login")
     public ResponseEntity<Void> login(
-            @RequestBody CredentialsControllerDto credentialsControllerDto,
+            @RequestBody @Valid CredentialsControllerDto credentialsControllerDto,
             HttpServletRequest request
     ) {
-        log.info("Called login; email={}", credentialsControllerDto.email());
-
-        if (credentialsControllerDto.email() == null || credentialsControllerDto.password() == null) {
-            return ResponseEntity.badRequest().build();
-        }
+        log.atInfo()
+                .setMessage("API endpoint is called")
+                .addKeyValue("API endpoint", "POST /auth/login")
+                .log();
 
         LoginResultDto loginResultServiceDto = authenticationService.login(
                 authorisationMapper.credentialsControllerToServiceDto(
@@ -65,14 +68,23 @@ public class AuthenticationController {
 
         return ResponseEntity
                 .noContent()
-                .header(HttpHeaders.SET_COOKIE, createJwtRefreshTokenCookie(loginResultServiceDto.refreshToken()).toString())
+                .header(
+                        HttpHeaders.SET_COOKIE,
+                        createJwtRefreshTokenCookie(
+                                loginResultServiceDto.refreshToken(),
+                                JwtService.REFRESH_TOKEN_DURATION
+                        ).toString()
+                )
                 .build();
     }
 
     @PostMapping("/refresh")
     // TODO: add refreshToken rotation
     public ResponseEntity<String> refresh(@CookieValue(name = "jwtRefreshToken") String refreshToken) {
-        log.info("Called refresh");
+        log.atInfo()
+                .setMessage("API endpoint is called")
+                .addKeyValue("API endpoint", "POST /auth/refresh")
+                .log();
 
         return ResponseEntity.ok(jwtService.refreshAccessToken(refreshToken));
     }
@@ -82,20 +94,23 @@ public class AuthenticationController {
             @NonNull HttpServletRequest request,
             @CookieValue(name = "jwtRefreshToken", required = false) String refreshToken
     ) {
-        log.info("Called logout");
+        log.atInfo()
+                .setMessage("API endpoint is called")
+                .addKeyValue("API endpoint", "DELETE /auth/logout")
+                .log();
 
         if (refreshToken != null) {
             authenticationService.logout(refreshToken, request.getHeader("Authorization").substring(7));
         }
 
-        ResponseCookie cookieDeleted = ResponseCookie.from("jwtRefreshToken", "")
-                .httpOnly(true)
-                .secure(false) // true in prod
-                .path("/")
-                .maxAge(0)
-                .sameSite("Lax")
+        return ResponseEntity.noContent()
+                .header(
+                        HttpHeaders.SET_COOKIE,
+                        createJwtRefreshTokenCookie(
+                                "",
+                                Duration.of(0, ChronoUnit.SECONDS)
+                        ).toString()
+                )
                 .build();
-
-        return ResponseEntity.noContent().header(HttpHeaders.SET_COOKIE, cookieDeleted.toString()).build();
     }
 }

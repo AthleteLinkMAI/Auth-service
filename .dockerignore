@@ -7,7 +7,7 @@ target/
 src/test/
 Dockerfile
 .gitignore
-.gitlab-ci.yml
+.gitlab-ci.yaml
 README.md
 LICENSE
 docker-compose.yaml
