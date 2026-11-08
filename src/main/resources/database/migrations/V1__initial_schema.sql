@@ -21,7 +21,7 @@ CREATE TABLE jwt_refresh_token(
 CREATE TABLE email_code(
     user_id    UUID       PRIMARY KEY REFERENCES user_credentials(user_id),
     code       VARCHAR(6) NOT NULL,
-    expiration TIMESTAMP  NOT NULL,
+    expiration TIMESTAMP  NOT NULL
 );
 
 CREATE TABLE password_reset_code(

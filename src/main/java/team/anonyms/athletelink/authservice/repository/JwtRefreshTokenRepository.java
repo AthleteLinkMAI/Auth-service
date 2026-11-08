@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import team.anonyms.athletelink.authservice.entity.JwtRefreshToken;
 import org.springframework.data.jpa.repository.JpaRepository;
+import team.anonyms.athletelink.authservice.entity.UserCredentials;
 
 import java.time.Instant;
 import java.util.List;
@@ -14,7 +15,7 @@ import java.util.UUID;
 
 @Repository
 public interface JwtRefreshTokenRepository extends JpaRepository<JwtRefreshToken, UUID> {
-    List<JwtRefreshToken> findAllByUserId(UUID userId);
+    List<JwtRefreshToken> findAllByUserCredentials(UserCredentials userCredentials);
 
     Optional<JwtRefreshToken> findByToken(String token);
 
@@ -24,5 +25,5 @@ public interface JwtRefreshTokenRepository extends JpaRepository<JwtRefreshToken
     void deleteAllByExpirationBefore(Instant now);
 
     @Transactional
-    void deleteAllByUserId(UUID userId);
+    void deleteAllByUserCredentials(UserCredentials userCredentials);
 }

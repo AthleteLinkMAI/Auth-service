@@ -38,12 +38,6 @@ public class UserCredentialsService {
             throw new EntityAlreadyExistsException("User with this email already exists; email=" + email);
         }
 
-        String nickname = dto.nickname();
-
-        if (userCredentialsRepository.findByNickname(nickname).isPresent()) {
-            throw new EntityAlreadyExistsException("User with this nickname already exists; nickname=" + nickname);
-        }
-
         UserCredentials userCredentialsToRegister = UserCredentials.builder()
                 .role(UserCredentials.UserRoleType.USER)
                 .email(email)

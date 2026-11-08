@@ -60,12 +60,18 @@ public class JwtService {
      *
      * @return JWT token.
      */
-    private String generateJwtToken(UUID userId, Instant expiration, String jwtTokenType) {
+    private String generateJwtToken(
+            UUID userId,
+            Instant expiration,
+            UserCredentials.UserRoleType role,
+            String jwtTokenType
+    ) {
         return Jwts.builder()
                 .id(UUID.randomUUID().toString())
                 .subject(userId.toString())
                 .issuedAt(Date.from(Instant.now()))
                 .expiration(Date.from(expiration))
+                .claim("role", role)
                 .claim("type", jwtTokenType)
                 .signWith(key, Jwts.SIG.HS512)
                 .compact();
@@ -73,12 +79,22 @@ public class JwtService {
 
     private String generateAccessToken(UserCredentials userCredentials) {
         Instant expiration = Instant.now().plus(ACCESS_TOKEN_DURATION);
-        return generateJwtToken(userCredentials.getUserId(), expiration, "ACCESS");
+        return generateJwtToken(
+                userCredentials.getUserId(),
+                expiration,
+                userCredentials.getRole(),
+                "ACCESS"
+        );
     }
 
     private String generateRefreshToken(UserCredentials userCredentials) {
         Instant expiration = Instant.now().plus(REFRESH_TOKEN_DURATION);
-        return generateJwtToken(userCredentials.getUserId(), expiration, "REFRESH");
+        return generateJwtToken(
+                userCredentials.getUserId(),
+                expiration,
+                userCredentials.getRole(),
+                "REFRESH"
+        );
     }
 
     public String createOrUpdateRefreshToken(UserCredentials userCredentials, String userAgent, String ipAddress) {

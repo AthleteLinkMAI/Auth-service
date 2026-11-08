@@ -5,7 +5,7 @@ import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import team.anonyms.athletelink.authservice.dto.controller.user.*;
 import team.anonyms.athletelink.authservice.entity.UserCredentials;
@@ -17,14 +17,12 @@ import java.util.UUID;
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-@PreAuthorize("hasAnyRole('ADMIN', 'MODERATOR')")
 @RequestMapping("/user")
 public class UserCredentialsController {
     private final UserCredentialsService userCredentialsService;
     private final UserCredentialsMapper userCredentialsMapper;
 
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("permitAll()")
     @PostMapping
     public void register(
             @RequestBody @Valid RegisterRequestControllerDto registerRequestControllerDto
@@ -69,9 +67,8 @@ public class UserCredentialsController {
         userCredentialsService.changeEmail(userId, newEmail);
     }
 
-    @ResponseStatus(HttpStatus.OK)
     @PutMapping("/role")
-    public UserCredentialsControllerDto updateUserRole(
+    public ResponseEntity<UserCredentialsControllerDto> updateUserRole(
             @RequestHeader("X-User-Id") UUID userId,
             @RequestHeader("X-User-Role") UserCredentials.UserRoleType role,
             @RequestBody UpdateRoleRequestControllerDto dto
@@ -84,8 +81,16 @@ public class UserCredentialsController {
                 .addKeyValue("updateRoleRequestControllerDto", dto)
                 .log();
 
-        return userCredentialsMapper.userServiceToControllerDto(
-                userCredentialsService.updateUserRole(userCredentialsMapper.updateRoleRequestControllerToServiceDto(dto))
+        if (!role.equals(UserCredentials.UserRoleType.ADMIN)) {
+            return ResponseEntity.status(403).build();
+        }
+
+        return ResponseEntity.ok(
+                userCredentialsMapper.userServiceToControllerDto(
+                        userCredentialsService.updateUserRole(
+                                userCredentialsMapper.updateRoleRequestControllerToServiceDto(dto)
+                        )
+                )
         );
     }
 

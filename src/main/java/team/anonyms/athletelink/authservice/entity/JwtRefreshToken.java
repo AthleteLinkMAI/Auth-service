@@ -24,7 +24,6 @@ import java.util.UUID;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "jwt_refresh_tokens")
 public class JwtRefreshToken {
     @Id
     private UUID jti;
@@ -46,5 +45,6 @@ public class JwtRefreshToken {
 
     @NotNull
     @ManyToOne(optional = false)
+    @JoinColumn(name = "user_id")
     private UserCredentials userCredentials;
 }

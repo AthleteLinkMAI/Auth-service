@@ -74,7 +74,7 @@ public class BanService {
                 .build();
 
         banRepository.save(banCreated);
-        jwtRefreshTokenRepository.deleteAllByUserId(dto.userToBan());
+        jwtRefreshTokenRepository.deleteAllByUserCredentials(userCredentials);
         redisService.addUserToBanlist(userCredentials);
 
         kafkaProducerService.sendUserToUpdate(
