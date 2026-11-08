@@ -46,5 +46,5 @@ public class JwtRefreshToken {
 
     @NotNull
     @ManyToOne(optional = false)
-    private User user;
+    private UserCredentials userCredentials;
 }

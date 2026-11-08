@@ -78,15 +78,16 @@ public class AuthenticationController {
                 .build();
     }
 
+    @ResponseStatus(HttpStatus.OK)
     @PostMapping("/refresh")
     // TODO: add refreshToken rotation
-    public ResponseEntity<String> refresh(@CookieValue(name = "jwtRefreshToken") String refreshToken) {
+    public String refresh(@CookieValue(name = "jwtRefreshToken") String refreshToken) {
         log.atInfo()
                 .setMessage("API endpoint is called")
                 .addKeyValue("API endpoint", "POST /auth/refresh")
                 .log();
 
-        return ResponseEntity.ok(jwtService.refreshAccessToken(refreshToken));
+        return jwtService.refreshAccessToken(refreshToken);
     }
 
     @DeleteMapping("/logout")

@@ -6,9 +6,10 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import team.anonyms.athletelink.authservice.entity.User;
+import team.anonyms.athletelink.authservice.entity.UserCredentials;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @MappedSuperclass
 @Getter
@@ -17,8 +18,7 @@ import java.time.Instant;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class VerificationCode {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private UUID userId;
 
     @Size(max = 6)
     @NotBlank
@@ -27,7 +27,8 @@ public abstract class VerificationCode {
     @NotNull
     private Instant expiration;
 
-    @NotNull
+    @MapsId
+    @JoinColumn(name = "user_id")
     @OneToOne(optional = false)
-    private User user;
+    private UserCredentials userCredentials;
 }

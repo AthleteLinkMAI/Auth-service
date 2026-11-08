@@ -22,4 +22,7 @@ public interface JwtRefreshTokenRepository extends JpaRepository<JwtRefreshToken
     @Modifying
     @Query("DELETE FROM JwtRefreshToken token WHERE token.expiration < :now")
     void deleteAllByExpirationBefore(Instant now);
+
+    @Transactional
+    void deleteAllByUserId(UUID userId);
 }

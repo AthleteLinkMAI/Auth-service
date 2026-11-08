@@ -40,7 +40,9 @@ spring:
 app:
   kafka:
     topics:
-      user-changes: user.changes
+      users-to-create: users.to.create
+      users-to-update: users.to.update
+      users-to-delete: users.to.delete
       notification-messages: notification.messages.requested
 
 jwt:

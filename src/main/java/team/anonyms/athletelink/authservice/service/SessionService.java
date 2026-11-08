@@ -54,10 +54,11 @@ public class SessionService {
                 () -> new EntityNotFoundException("Session not found; sessionId=" + terminateSessionDto.sessionId())
         );
 
-        if (!activeSession.getUser().getId().equals(terminateSessionDto.userId())) {
+        if (!activeSession.getUserCredentials().getUserId().equals(terminateSessionDto.userId())) {
             throw new InsecureDirectObjectReferenceException(
-                    "IDOR occurred; jwtRefreshTokenId=" + terminateSessionDto.sessionId() + ", actual userId=" +
-                            activeSession.getUser().getId() + ", authenticated userId=" + terminateSessionDto.userId()
+                    "IDOR occurred; jwtRefreshTokenId=" + terminateSessionDto.sessionId() +
+                            ", actual userId=" + activeSession.getUserCredentials().getUserId() +
+                            ", authenticated userId=" + terminateSessionDto.userId()
             );
         }
 

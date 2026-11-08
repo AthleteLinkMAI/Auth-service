@@ -4,7 +4,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
-import team.anonyms.athletelink.authservice.entity.User;
+import team.anonyms.athletelink.authservice.entity.UserCredentials;
 import team.anonyms.athletelink.authservice.repository.JwtRefreshTokenRepository;
 
 import java.nio.charset.StandardCharsets;
@@ -24,8 +24,8 @@ class JwtServiceTest {
         ReflectionTestUtils.invokeMethod(service, "init");
 
         UUID userId = UUID.randomUUID();
-        User user = User.builder().id(userId).build();
-        String accessToken = ReflectionTestUtils.invokeMethod(service, "generateAccessToken", user);
+        UserCredentials userCredentials = UserCredentials.builder().userId(userId).build();
+        String accessToken = ReflectionTestUtils.invokeMethod(service, "generateAccessToken", userCredentials);
 
         var claims = Jwts.parser()
                 .verifyWith(Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8)))

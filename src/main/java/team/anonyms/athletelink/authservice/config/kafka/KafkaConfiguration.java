@@ -10,12 +10,38 @@ import org.springframework.kafka.config.TopicBuilder;
 @EnableConfigurationProperties(KafkaTopicsProperties.class)
 public class KafkaConfiguration {
     @Bean
-    public NewTopic userChangesTopic(KafkaTopicsProperties topics) {
-        return TopicBuilder.name(topics.userChanges()).partitions(3).replicas(1).build();
+    public NewTopic notificationMessagesTopic(KafkaTopicsProperties topics) {
+        return TopicBuilder
+                .name(topics.notificationMessages())
+                .partitions(3)
+                .replicas(1)
+                .build();
     }
 
     @Bean
-    public NewTopic notificationMessagesTopic(KafkaTopicsProperties topics) {
-        return TopicBuilder.name(topics.notificationMessages()).partitions(3).replicas(1).build();
+    public NewTopic usersToCreateTopic(KafkaTopicsProperties topics) {
+        return TopicBuilder
+                .name(topics.usersToCreate())
+                .partitions(3)
+                .replicas(1)
+                .build();
+    }
+
+    @Bean
+    public NewTopic usersToUpdateTopic(KafkaTopicsProperties topics) {
+        return TopicBuilder
+                .name(topics.usersToUpdate())
+                .partitions(3)
+                .replicas(1)
+                .build();
+    }
+
+    @Bean
+    public NewTopic usersToDeleteTopic(KafkaTopicsProperties topics) {
+        return TopicBuilder
+                .name(topics.usersToDelete())
+                .partitions(3)
+                .replicas(1)
+                .build();
     }
 }

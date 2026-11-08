@@ -9,13 +9,13 @@ import team.anonyms.athletelink.authservice.dto.service.kafka.NotificationMessag
 import team.anonyms.athletelink.authservice.dto.service.kafka.enums.NotificationType;
 import team.anonyms.athletelink.authservice.dto.service.verification.EmailVerificationServiceDto;
 import team.anonyms.athletelink.authservice.dto.service.verification.PasswordResetRequestServiceDto;
-import team.anonyms.athletelink.authservice.entity.User;
+import team.anonyms.athletelink.authservice.entity.UserCredentials;
 import team.anonyms.athletelink.authservice.entity.code.EmailCode;
 import team.anonyms.athletelink.authservice.entity.code.PasswordResetCode;
-import team.anonyms.athletelink.authservice.exception.VerificationCodeAlreadyExistsException;
+import team.anonyms.athletelink.authservice.exception.EntityAlreadyExistsException;
 import team.anonyms.athletelink.authservice.repository.EmailVerificationCodeRepository;
 import team.anonyms.athletelink.authservice.repository.PasswordResetCodeRepository;
-import team.anonyms.athletelink.authservice.repository.UserRepository;
+import team.anonyms.athletelink.authservice.repository.UserCredentialsRepository;
 
 import java.security.SecureRandom;
 import java.time.Duration;
@@ -37,34 +37,34 @@ public class VerificationService {
     private final KafkaProducerService kafkaProducerService;
     private final EmailVerificationCodeRepository emailVerificationCodeRepository;
     private final PasswordResetCodeRepository passwordResetCodeRepository;
-    private final UserRepository userRepository;
+    private final UserCredentialsRepository userCredentialsRepository;
 
     private final BCryptPasswordEncoder passwordEncoder;
 
     @Transactional
     public void generateAndSendEmailCode(UUID userId) {
-        User user = userRepository.findById(userId)
+        UserCredentials userCredentials = userCredentialsRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found; userId=" + userId));
 
-        if (user.getIsVerified()) {
+        if (userCredentials.getIsVerified()) {
             throw new IllegalArgumentException("User is already verified; userId=" + userId);
         }
 
         if (emailVerificationCodeRepository.findByUserId(userId).isPresent()) {
-            throw new VerificationCodeAlreadyExistsException("Email verification code already exists; userId=" + userId);
+            throw new EntityAlreadyExistsException("Email verification code already exists; userId=" + userId);
         }
 
         EmailCode emailCode = EmailCode.builder()
                 .code(generateRawCode())
                 .expiration(Instant.now().plus(CODE_EXPIRATION))
-                .user(user)
+                .userCredentials(userCredentials)
                 .build();
 
         emailVerificationCodeRepository.save(emailCode);
         kafkaProducerService.sendNotificationMessage(
                 new NotificationMessage(
                         NotificationType.EMAIL,
-                        user.getEmail(),
+                        userCredentials.getEmail(),
                         "Email verification code",
                         "Your email verification code is:\n" + emailCode.getCode()
                 ),
@@ -74,7 +74,7 @@ public class VerificationService {
 
     @Transactional
     public void verifyEmail(EmailVerificationServiceDto emailVerificationServiceDto) {
-        User user = userRepository.findById(emailVerificationServiceDto.userId())
+        UserCredentials userCredentials = userCredentialsRepository.findById(emailVerificationServiceDto.userId())
                 .orElseThrow(() -> new EntityNotFoundException("User not found; userId=" + emailVerificationServiceDto.userId()));
 
         EmailCode emailCode = emailVerificationCodeRepository.findByUserId(emailVerificationServiceDto.userId())
@@ -89,35 +89,37 @@ public class VerificationService {
             throw new IllegalArgumentException("Invalid verification code");
         }
 
-        user.setIsVerified(true);
-        userRepository.save(user);
+        userCredentials.setIsVerified(true);
+        userCredentialsRepository.save(userCredentials);
         emailVerificationCodeRepository.delete(emailCode);
     }
 
     @Transactional
     public void generateAndSendPasswordResetCode(String email) {
-        User user = userRepository.findByEmail(email)
+        UserCredentials userCredentials = userCredentialsRepository.findByEmail(email)
                 .orElseThrow(() -> new EntityNotFoundException("User not found; email=" + email));
 
-        if (passwordResetCodeRepository.findByUserId(user.getId()).isPresent()) {
-            throw new VerificationCodeAlreadyExistsException("Password reset code already exists; userId=" + user.getId());
+        if (passwordResetCodeRepository.findByUserId(userCredentials.getUserId()).isPresent()) {
+            throw new EntityAlreadyExistsException(
+                    "Password reset code already exists; userId=" + userCredentials.getUserId()
+            );
         }
 
         PasswordResetCode passwordResetCode = PasswordResetCode.builder()
                 .code(generateRawCode())
                 .expiration(Instant.now().plus(CODE_EXPIRATION))
-                .user(user)
+                .userCredentials(userCredentials)
                 .build();
 
         passwordResetCodeRepository.save(passwordResetCode);
         kafkaProducerService.sendNotificationMessage(
                 new NotificationMessage(
                         NotificationType.EMAIL,
-                        user.getEmail(),
+                        userCredentials.getEmail(),
                         "Password reset code",
                         "Your password reset code is:\n" + passwordResetCode.getCode()
                 ),
-                user.getId()
+                userCredentials.getUserId()
         );
     }
 
@@ -136,11 +138,13 @@ public class VerificationService {
     public void validatePasswordResetCodeAndResetPassword(
             PasswordResetRequestServiceDto passwordResetRequestServiceDto
     ) {
-        User user = userRepository.findByEmail(passwordResetRequestServiceDto.email()).orElseThrow(
+        UserCredentials userCredentials = userCredentialsRepository.findByEmail(passwordResetRequestServiceDto.email()).orElseThrow(
                 () -> new EntityNotFoundException("User not found; email={}" + passwordResetRequestServiceDto.email()));
 
-        PasswordResetCode passwordResetCode = passwordResetCodeRepository.findByUserId(user.getId())
-                .orElseThrow(() -> new EntityNotFoundException("No verification code found for user; userId=" + user.getId()));
+        PasswordResetCode passwordResetCode = passwordResetCodeRepository.findByUserId(userCredentials.getUserId())
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "No verification code found for user; userId=" + userCredentials.getUserId()
+                ));
 
         if (passwordResetCode.getExpiration().isBefore(Instant.now())) {
             passwordResetCodeRepository.delete(passwordResetCode);
@@ -155,17 +159,17 @@ public class VerificationService {
 
         String newPassword = generatePassword();
 
-        user.setPassword(passwordEncoder.encode(newPassword));
-        userRepository.save(user);
+        userCredentials.setPassword(passwordEncoder.encode(newPassword));
+        userCredentialsRepository.save(userCredentials);
 
         kafkaProducerService.sendNotificationMessage(
                 new NotificationMessage(
                         NotificationType.EMAIL,
-                        user.getEmail(),
+                        userCredentials.getEmail(),
                         "New password",
                         "Your new password is:\n" + newPassword
                 ),
-                user.getId()
+                userCredentials.getUserId()
         );
     }
 

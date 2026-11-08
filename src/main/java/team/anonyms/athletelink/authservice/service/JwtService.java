@@ -6,7 +6,7 @@ import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import team.anonyms.athletelink.authservice.entity.JwtRefreshToken;
-import team.anonyms.athletelink.authservice.entity.User;
+import team.anonyms.athletelink.authservice.entity.UserCredentials;
 import team.anonyms.athletelink.authservice.repository.JwtRefreshTokenRepository;
 
 import org.jspecify.annotations.Nullable;
@@ -71,20 +71,20 @@ public class JwtService {
                 .compact();
     }
 
-    private String generateAccessToken(User user) {
+    private String generateAccessToken(UserCredentials userCredentials) {
         Instant expiration = Instant.now().plus(ACCESS_TOKEN_DURATION);
-        return generateJwtToken(user.getId(), expiration, "ACCESS");
+        return generateJwtToken(userCredentials.getUserId(), expiration, "ACCESS");
     }
 
-    private String generateRefreshToken(User user) {
+    private String generateRefreshToken(UserCredentials userCredentials) {
         Instant expiration = Instant.now().plus(REFRESH_TOKEN_DURATION);
-        return generateJwtToken(user.getId(), expiration, "REFRESH");
+        return generateJwtToken(userCredentials.getUserId(), expiration, "REFRESH");
     }
 
-    public String createOrUpdateRefreshToken(User user, String userAgent, String ipAddress) {
+    public String createOrUpdateRefreshToken(UserCredentials userCredentials, String userAgent, String ipAddress) {
         Instant now = Instant.now();
         Instant expiration = now.plus(REFRESH_TOKEN_DURATION);
-        String refreshToken = generateRefreshToken(user);
+        String refreshToken = generateRefreshToken(userCredentials);
 
         JwtRefreshToken jwtRefreshToken = JwtRefreshToken.builder()
                 .jti(UUID.fromString(extractId(refreshToken)))
@@ -93,7 +93,7 @@ public class JwtService {
                 .lastUsed(now)
                 .userAgent(userAgent)
                 .ipAddress(ipAddress)
-                .user(user)
+                .userCredentials(userCredentials)
                 .build();
 
         jwtRefreshTokenRepository.save(jwtRefreshToken);
@@ -171,7 +171,7 @@ public class JwtService {
         dbToken.setLastUsed(Instant.now());
         jwtRefreshTokenRepository.save(dbToken);
 
-        return generateAccessToken(dbToken.getUser());
+        return generateAccessToken(dbToken.getUserCredentials());
     }
 
     @Transactional
