@@ -12,8 +12,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Repository
 public class RedisService {
-    public static final String DENYLIST_PREFIX = "jwt:denylist";
-    public static final String BANLIST_PREFIX = "user:banlist";
+    public static final String DENYLIST_PREFIX = "jwt:denylist:";
+    public static final String BANLIST_PREFIX = "user:banlist:";
 
     private final StringRedisTemplate stringRedisTemplate;
 
