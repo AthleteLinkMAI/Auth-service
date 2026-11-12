@@ -24,7 +24,7 @@ public class BanController {
 
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/{email}")
-    public BanControllerDto getBanByUserEmail(@RequestPart @Email String email) {
+    public BanControllerDto getBanByUserEmail(@PathVariable @Email String email) {
         log.atInfo()
                 .setMessage("API endpoint is called")
                 .addKeyValue("API endpoint", "GET /ban/{email}")
