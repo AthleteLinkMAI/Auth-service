@@ -1,27 +1,28 @@
 package team.anonyms.athletelink.authservice.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import team.anonyms.athletelink.authservice.dto.service.auth.CredentialsServiceDto;
 import team.anonyms.athletelink.authservice.dto.service.auth.LoginResultDto;
-import team.anonyms.athletelink.authservice.entity.User;
-import team.anonyms.athletelink.authservice.repository.UserRepository;
+import team.anonyms.athletelink.authservice.entity.UserCredentials;
+import team.anonyms.athletelink.authservice.exception.AccessForbiddenException;
+import team.anonyms.athletelink.authservice.repository.BanRepository;
+import team.anonyms.athletelink.authservice.repository.UserCredentialsRepository;
 
 import org.jspecify.annotations.NonNull;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
 public class AuthenticationService {
     private final JwtService jwtService;
-    private final UserRepository userRepository;
-    private final BCryptPasswordEncoder passwordEncoder;
+    private final RedisService redisService;
+    private final UserCredentialsRepository userCredentialsRepository;
+    private final BanRepository banRepository;
 
-    private final StringRedisTemplate stringRedisTemplate;
+    private final BCryptPasswordEncoder passwordEncoder;
 
     /**
      * Login a user into system.
@@ -30,15 +31,20 @@ public class AuthenticationService {
      * @return {@link LoginResultDto}.
      */
     public LoginResultDto login(@NonNull CredentialsServiceDto credentialsServiceDto) {
-        Optional<User> userOptional = userRepository.findByEmail(credentialsServiceDto.email());
+        Optional<UserCredentials> userOptional = userCredentialsRepository.findByEmail(credentialsServiceDto.email());
 
-        if (userOptional.isEmpty() || !passwordEncoder.matches(credentialsServiceDto.password(), userOptional.get().getPassword())) {
+        if (userOptional.isEmpty() ||
+                !passwordEncoder.matches(credentialsServiceDto.password(), userOptional.get().getPassword())) {
             return new LoginResultDto(false, null);
         }
 
-        User user = userOptional.get();
+        UserCredentials userCredentials = userOptional.get();
+        if (banRepository.findById(userCredentials.getUserId()).isPresent()) {
+            throw new AccessForbiddenException("User is banned");
+        }
+
         String refreshToken = jwtService.createOrUpdateRefreshToken(
-                user,
+                userCredentials,
                 credentialsServiceDto.userAgent(),
                 credentialsServiceDto.userIpAddress()
         );
@@ -54,9 +60,6 @@ public class AuthenticationService {
      */
     public void logout(String refreshToken, String accessToken) {
         jwtService.deleteRefreshToken(refreshToken);
-
-        stringRedisTemplate.opsForValue().set(
-                "jwt:denylist:" + jwtService.extractId(accessToken), "", 5, TimeUnit.MINUTES
-        );
+        redisService.addJwtAccessTokenToDenylist(jwtService.extractId(accessToken));
     }
 }

@@ -9,6 +9,5 @@ import lombok.experimental.SuperBuilder;
 @Setter
 @SuperBuilder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "password_reset_codes")
 public class PasswordResetCode extends VerificationCode {
 }

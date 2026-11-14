@@ -1,15 +1,13 @@
 package team.anonyms.athletelink.authservice.entity;
 
-import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
-import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
@@ -18,24 +16,23 @@ import java.util.UUID;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "users")
-public class User {
+@Table(name = "user_credentials")
+public class UserCredentials {
+    public enum UserRoleType {
+        ADMIN,
+        MODERATOR,
+        USER
+    }
+
+    @Setter(AccessLevel.NONE)
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    private UUID userId;
 
-    @Size(max = 30)
-    @NotBlank
-    private String nickname;
-
-    @Nullable
-    private String name;
-
-    @Nullable
-    private String surname;
-
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @NotNull
-    private LocalDate birthdate;
+    private UserRoleType role;
 
     @Email
     @NotBlank
@@ -46,8 +43,4 @@ public class User {
 
     @NotNull
     private Boolean isVerified;
-
-    @Setter(AccessLevel.NONE)
-    @CreationTimestamp
-    private LocalDate registrationDate;
 }

@@ -8,9 +8,11 @@ import team.anonyms.athletelink.authservice.dto.controller.session.SessionContro
 import team.anonyms.athletelink.authservice.dto.service.session.SessionServiceDto;
 import team.anonyms.athletelink.authservice.dto.service.session.TerminateSessionRequestServiceDto;
 import team.anonyms.athletelink.authservice.entity.JwtRefreshToken;
+import team.anonyms.athletelink.authservice.entity.UserCredentials;
 import team.anonyms.athletelink.authservice.exception.InsecureDirectObjectReferenceException;
 import team.anonyms.athletelink.authservice.mapper.SessionMapper;
 import team.anonyms.athletelink.authservice.repository.JwtRefreshTokenRepository;
+import team.anonyms.athletelink.authservice.repository.UserCredentialsRepository;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +21,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class SessionService {
+    private final UserCredentialsRepository userCredentialsRepository;
     private final JwtRefreshTokenRepository jwtRefreshTokenRepository;
     private final SessionMapper sessionMapper;
 
@@ -43,8 +46,14 @@ public class SessionService {
     }
 
     public List<SessionControllerDto> getSessions(UUID userId) {
+        UserCredentials userCredentials = userCredentialsRepository.findById(userId).orElseThrow(
+                () -> new EntityNotFoundException("User is not found; id=" + userId)
+        );
+
         return sessionMapper.sessionServiceListToControllerListDto(
-                createSessionDataListFromJwtRefreshTokenList(jwtRefreshTokenRepository.findAllByUserId(userId))
+                createSessionDataListFromJwtRefreshTokenList(
+                        jwtRefreshTokenRepository.findAllByUserCredentials(userCredentials)
+                )
         );
     }
 
@@ -54,10 +63,11 @@ public class SessionService {
                 () -> new EntityNotFoundException("Session not found; sessionId=" + terminateSessionDto.sessionId())
         );
 
-        if (!activeSession.getUser().getId().equals(terminateSessionDto.userId())) {
+        if (!activeSession.getUserCredentials().getUserId().equals(terminateSessionDto.userId())) {
             throw new InsecureDirectObjectReferenceException(
-                    "IDOR occurred; jwtRefreshTokenId=" + terminateSessionDto.sessionId() + ", actual userId=" +
-                            activeSession.getUser().getId() + ", authenticated userId=" + terminateSessionDto.userId()
+                    "IDOR occurred; jwtRefreshTokenId=" + terminateSessionDto.sessionId() +
+                            ", actual userId=" + activeSession.getUserCredentials().getUserId() +
+                            ", authenticated userId=" + terminateSessionDto.userId()
             );
         }
 
@@ -66,6 +76,10 @@ public class SessionService {
 
     @Transactional
     public void terminateAllSessions(UUID userId) {
-        jwtRefreshTokenRepository.deleteAll(jwtRefreshTokenRepository.findAllByUserId(userId));
+        UserCredentials userCredentials = userCredentialsRepository.findById(userId).orElseThrow(
+                () -> new EntityNotFoundException("User is not found; id=" + userId)
+        );
+
+        jwtRefreshTokenRepository.deleteAll(jwtRefreshTokenRepository.findAllByUserCredentials(userCredentials));
     }
 }

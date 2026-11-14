@@ -4,7 +4,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import team.anonyms.athletelink.authservice.dto.controller.verification.EmailVerificationControllerDto;
 import team.anonyms.athletelink.authservice.dto.controller.verification.PasswordResetRequestControllerDto;
@@ -21,8 +21,9 @@ public class VerificationController {
     private final VerificationService verificationService;
     private final VerificationMapper verificationMapper;
 
-    @PostMapping("/send-email-verification-code/{userId}")
-    public ResponseEntity<Void> sendEmailVerificationCode(@PathVariable UUID userId) {
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    @PostMapping("/send-email-verification-code")
+    public void sendEmailVerificationCode(@RequestHeader("X-User-Id") UUID userId) {
         log.atInfo()
                 .setMessage("API endpoint is called")
                 .addKeyValue("API endpoint", "POST /verification/send-email-verification-code/{userId}")
@@ -30,13 +31,13 @@ public class VerificationController {
                 .log();
 
         verificationService.generateAndSendEmailCode(userId);
-        return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/verify-email/{userId}")
-    public ResponseEntity<Boolean> verifyEmail(
-            @RequestBody String emailVerificationCode,
-            @PathVariable UUID userId
+    @ResponseStatus(HttpStatus.OK)
+    @PostMapping("/email")
+    public void verifyEmail(
+            @RequestHeader("X-User-Id") UUID userId,
+            @RequestBody String emailVerificationCode
     ) {
         log.atInfo()
                 .setMessage("API endpoint is called")
@@ -50,22 +51,22 @@ public class VerificationController {
         );
 
         verificationService.verifyEmail(verificationMapper.emailVerificationControllerToServiceDto(controllerDto));
-        return ResponseEntity.ok().build();
     }
 
+    @ResponseStatus(HttpStatus.OK)
     @PostMapping("/send-password-reset-code")
-    public ResponseEntity<Void> sendPasswordResetCode(@RequestBody @Email String email) {
+    public void sendPasswordResetCode(@RequestBody @Email String email) {
         log.atInfo()
                 .setMessage("API endpoint is called")
                 .addKeyValue("API endpoint", "POST /verification/send-password-reset-code")
                 .log();
 
         verificationService.generateAndSendPasswordResetCode(email);
-        return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/verify-password-reset")
-    public ResponseEntity<Void> resetPassword(
+    @ResponseStatus(HttpStatus.OK)
+    @PostMapping("/password-reset")
+    public void resetPassword(
             @RequestBody @Valid PasswordResetRequestControllerDto passwordResetRequestControllerDto
     ) {
         log.atInfo()
@@ -76,7 +77,5 @@ public class VerificationController {
         verificationService.validatePasswordResetCodeAndResetPassword(
                 verificationMapper.passwordResetRequestControllerToServiceDto(passwordResetRequestControllerDto)
         );
-
-        return ResponseEntity.ok().build();
     }
 }

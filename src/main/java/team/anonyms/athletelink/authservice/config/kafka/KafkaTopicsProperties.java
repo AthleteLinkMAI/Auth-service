@@ -4,7 +4,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties("app.kafka.topics")
 public record KafkaTopicsProperties(
-    String userChanges,
-    String notificationMessages
+        String notificationMessages,
+        String usersToCreate,
+        String usersToUpdate,
+        String usersToDelete
 ) {
 }
